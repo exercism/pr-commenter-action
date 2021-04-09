@@ -2,6 +2,88 @@ module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 88:
+/***/ ((module) => {
+
+function validateCommentConfig(configObject) {
+  const configMap = new Map();
+
+  if (typeof configObject.comment !== "object") {
+    throw Error(
+      `found unexpected value type '${typeof configObject.comment}' under key '.comment' (should be an object)`
+    );
+  }
+
+  if (configObject.comment.header === undefined || configObject.comment.header === null || typeof configObject.comment.header === "string") {
+    configMap.set('header', configObject.comment.header)
+  } else {
+    throw Error(
+      `found unexpected value type '${typeof configObject.comment.header}' under key '.comment.header' (should be a string)`
+    );
+  }
+
+  if (configObject.comment.footer === undefined || configObject.comment.footer === null || typeof configObject.comment.footer === "string") {
+    configMap.set('footer', configObject.comment.footer)
+  } else {
+    throw Error(
+      `found unexpected value type '${typeof configObject.comment.footer}' under key '.comment.footer' (should be a string)`
+    );
+  }
+
+  if (Array.isArray(configObject.comment.snippets) && configObject.comment.snippets.length > 0) {
+    configMap.set('snippets', configObject.comment.snippets.map(function (snippetObject, index) {
+      const snippetMap = new Map();
+
+      if (typeof snippetObject.id === "string") {
+        snippetMap.set('id', snippetObject.id)
+      } else {
+        throw Error(
+          `found unexpected value type '${typeof snippetObject.id}' under key '.comment.snippets.${index}.id' (should be a string)`
+        );
+      }
+
+      if (typeof snippetObject.body === "string") {
+        snippetMap.set('body', snippetObject.body)
+      } else {
+        throw Error(
+          `found unexpected value type '${typeof snippetObject.body}' under key '.comment.snippets.${index}.body' (should be a string)`
+        );
+      }
+
+      if (Array.isArray(snippetObject.files) && snippetObject.files.length > 0 && snippetObject.files.every(f => typeof f === "string")) {
+        snippetMap.set('files', snippetObject.files)
+      } else {
+        throw Error(
+          `found unexpected value type under key '.comment.snippets.${index}.files' (should be a non-empty array of strings)`
+        );
+      }
+
+      return snippetMap
+    }))
+
+    const snippetIds = configMap.get('snippets').map(s => s.get('id'))
+    snippetIds.forEach((value, index, self) => {
+      if (self.indexOf(value) !== index) {
+        throw Error(
+          `found duplicate snippet id '${value}'`
+        );
+      }
+    })
+
+  } else {
+    throw Error(
+      `found unexpected value type under key '.comment.snippets' (should be a non-empty array)`
+    );
+  }
+
+  return configMap;
+}
+
+module.exports = { validateCommentConfig }
+
+
+/***/ }),
+
 /***/ 356:
 /***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
 
@@ -3849,17 +3931,9 @@ var jsYaml = {
 
 // EXTERNAL MODULE: ./node_modules/minimatch/minimatch.js
 var minimatch = __nccwpck_require__(973);
+// EXTERNAL MODULE: ./lib/config.js
+var config = __nccwpck_require__(88);
 // CONCATENATED MODULE: ./lib/index.js
-// const core = require('@actions/core');
-// const github = require('@actions/github');
-//
-// try {
-//   console.log(`Hello, World!`);
-//   const payload = JSON.stringify(github.context.payload, undefined, 2)
-//   console.log(`The event payload: ${payload}`);
-// } catch (error) {
-//   core.setFailed(error.message);
-// }
 
 
 
@@ -3887,10 +3961,8 @@ async function run() {
 
     core.debug(`fetching changed files for pr #${prNumber}`);
     const changedFiles = await getChangedFiles(client, prNumber);
-    // const labelGlobs = await getLabelGlobs(
-    //   client,
-    //   configPath
-    // );
+    const commentConfig = await getCommentConfig(client, configPath);
+
     //
     // const labels = [];
     // const labelsToRemove = [];
@@ -3943,46 +4015,24 @@ async function getChangedFiles(client, prNumber) {
   return changedFiles;
 }
 
-// async function getLabelGlobs(client, configurationPath) {
-//   const configurationContent = await fetchContent(
-//     client,
-//     configurationPath
-//   );
-//
-//   // loads (hopefully) a `{[label:string]: string | StringOrMatchConfig[]}`, but is `any`:
-//   const configObject = yaml.safeLoad(configurationContent);
-//
-//   // transform `any` => `Map<string,StringOrMatchConfig[]>` or throw if yaml is malformed:
-//   return getLabelGlobMapFromObject(configObject);
-// }
+async function getCommentConfig(client, configurationPath) {
+  const configurationContent = await fetchContent(client, configurationPath);
+  const configObject = load$1(configurationContent);
 
-// async function fetchContent(client, repoPath) {
-//   const response = await client.repos.getContents({
-//     owner: github.context.repo.owner,
-//     repo: github.context.repo.repo,
-//     path: repoPath,
-//     ref: github.context.sha
-//   });
-//
-//   return Buffer.from(response.data.content, response.data.encoding).toString();
-// }
-//
-// function getLabelGlobMapFromObject(configObject) {
-//   const labelGlobs = new Map();
-//   for (const label in configObject) {
-//     if (typeof configObject[label] === "string") {
-//       labelGlobs.set(label, [configObject[label]]);
-//     } else if (configObject[label] instanceof Array) {
-//       labelGlobs.set(label, configObject[label]);
-//     } else {
-//       throw Error(
-//         `found unexpected type for label ${label} (should be string or array of globs)`
-//       );
-//     }
-//   }
-//
-//   return labelGlobs;
-// }
+  // transform object to a map or throw if yaml is malformed:
+  return (0,config.validateCommentConfig)(configObject);
+}
+
+async function fetchContent(client, repoPath) {
+  const response = await client.repos.getContents({
+    owner: github.context.repo.owner,
+    repo: github.context.repo.repo,
+    path: repoPath,
+    ref: github.context.sha
+  });
+
+  return Buffer.from(response.data.content, response.data.encoding).toString();
+}
 
 // function toMatchConfig(config) {
 //   if (typeof config === "string") {
