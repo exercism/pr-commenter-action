@@ -3981,12 +3981,6 @@ async function run() {
     // eslint-disable-next-line new-cap
     const client = new github.getOctokit(token);
 
-    const { data: pullRequest } = await client.pulls.get({
-      owner: github.context.repo.owner,
-      repo: github.context.repo.repo,
-      pull_number: prNumber,
-    });
-
     core.debug(`fetching changed files for pr #${prNumber}`);
     const changedFiles = await getChangedFiles(client, prNumber);
     const commentConfig = await getCommentConfig(client, configPath);
@@ -3995,6 +3989,8 @@ async function run() {
     // check snippet ids included in the comment
 
     const snippetIds = (0,snippets.getMatchingSnippetIds)(changedFiles, commentConfig);
+
+    await getPRComments(client, prNumber)
 
     // TODO: do not post a comment if snippetIds is empty ?
 
@@ -4056,6 +4052,18 @@ async function fetchContent(client, repoPath) {
   });
 
   return Buffer.from(response.data.content, response.data.encoding).toString();
+}
+
+async function getPRComments(client, prNumber) {
+  const { data: comments } = await client.issues.listComments({
+    owner: github.context.repo.owner,
+    repo: github.context.repo.repo,
+    issue_number: prNumber
+  })
+
+  console.log(comments)
+
+  return comments
 }
 
 run();
