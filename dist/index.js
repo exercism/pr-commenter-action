@@ -3877,7 +3877,7 @@ async function run() {
       return;
     }
 
-    const client = new github.GitHub(token);
+    const client = new github.getOctokit(token);
 
     const { data: pullRequest } = await client.pulls.get({
       owner: github.context.repo.owner,
