@@ -3981,7 +3981,7 @@ var config = __nccwpck_require__(88);
 // EXTERNAL MODULE: ./lib/snippets.js
 var snippets = __nccwpck_require__(9920);
 // EXTERNAL MODULE: ./lib/comment.js
-var lib_comment = __nccwpck_require__(1667);
+var comment = __nccwpck_require__(1667);
 // CONCATENATED MODULE: ./lib/index.js
 
 
@@ -4011,20 +4011,22 @@ async function run() {
 
     const snippetIds = (0,snippets.getMatchingSnippetIds)(changedFiles, commentConfig);
 
-    const { comment, previousSnippetIds } = await getPreviousPRComment(client, prNumber);
+    const { previousComment, previousSnippetIds } = await getPreviousPRComment(client, prNumber);
 
-    if (comment) {
+    const newCommentDifferentThanPreviousComment = previousSnippetIds.join(',') !== snippetIds.join(',');
+
+    if (previousComment && newCommentDifferentThanPreviousComment) {
       core.debug('removing previous comment');
       await client.issues.deleteComment({
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
-        comment_id: comment.id,
+        comment_id: previousComment.id,
       });
     }
 
     if (snippetIds.length > 0) {
-      if (!previousSnippetIds || previousSnippetIds.join(',') !== snippetIds.join(',')) {
-        const commentBody = (0,lib_comment.assembleComment)(snippetIds, commentConfig);
+      if (!previousComment || newCommentDifferentThanPreviousComment) {
+        const commentBody = (0,comment.assembleComment)(snippetIds, commentConfig);
 
         await client.issues.createComment({
           owner: github.context.repo.owner,
@@ -4099,22 +4101,22 @@ async function getPreviousPRComment(client, prNumber) {
 
   const newestFirst = (c1, c2) => c2.created_at.localeCompare(c1.created_at);
   const botComments = comments.filter((c) => c.user.type === 'Bot').sort(newestFirst);
-  const comment = botComments.find((c) => (0,lib_comment.extractCommentMetadata)(c.body) !== null);
+  const previousComment = botComments.find((c) => (0,comment.extractCommentMetadata)(c.body) !== null);
 
-  if (comment) {
-    const previousSnippetIds = (0,lib_comment.extractCommentMetadata)(comment.body);
+  if (previousComment) {
+    const previousSnippetIds = (0,comment.extractCommentMetadata)(previousComment.body);
 
-    core.debug(`found previous a comment made by pr-commenter: ${comment.url}`);
+    core.debug(`found previous comment made by pr-commenter: ${previousComment.url}`);
     core.debug(`extracted snippet ids from previous comment: ${previousSnippetIds.join(', ')}`);
 
     return {
-      comment,
+      previousComment,
       previousSnippetIds,
     };
   }
 
   return {
-    comment: null,
+    previousComment: null,
     previousSnippetIds: null,
   };
 }
