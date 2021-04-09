@@ -2,6 +2,30 @@ module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 1667:
+/***/ ((module) => {
+
+function assembleComment(snippetIds, commentConfig) {
+  let strings = [
+    commentConfig.get('header'),
+    ...commentConfig.get('snippets').map((snippet) => {
+      if (snippetIds.includes(snippet.get('id'))) {
+        return snippet.get('body');
+      }
+      return null;
+    }),
+    commentConfig.get('footer'),
+  ];
+
+  strings = strings.filter((s) => !!s);
+  return strings.join('\n\n');
+}
+
+module.exports = { assembleComment };
+
+
+/***/ }),
+
 /***/ 88:
 /***/ ((module) => {
 
@@ -3932,7 +3956,10 @@ var jsYaml = {
 var config = __nccwpck_require__(88);
 // EXTERNAL MODULE: ./lib/snippets.js
 var snippets = __nccwpck_require__(9920);
+// EXTERNAL MODULE: ./lib/comment.js
+var comment = __nccwpck_require__(1667);
 // CONCATENATED MODULE: ./lib/index.js
+
 
 
 
@@ -3971,13 +3998,14 @@ async function run() {
 
     // TODO: do not post a comment if snippetIds is empty ?
 
+    const commentBody = (0,comment.assembleComment)(snippetIds, commentConfig);
+
     await client.issues.createComment({
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
       issue_number: prNumber,
-      body: snippetIds.join(', ')
-    })
-
+      body: commentBody,
+    });
   } catch (error) {
     core.error(error);
     core.setFailed(error.message);
