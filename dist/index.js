@@ -3968,6 +3968,7 @@ async function run() {
 
     const snippetIds = commentConfig.get('snippets').reduce(function (acc, snippet) {
       core.debug(`processing snippet ${snippet.get('id')}`);
+      core.debug(`  snippet patterns: ${snippet.get('files')}`)
 
       if (checkGlobs(changedFiles, snippet.get('files'))) {
         return [...acc, snippet.get('id')]
