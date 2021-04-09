@@ -6,43 +6,43 @@ describe('validateCommentConfig', () => {
     body: 'let me tell you something...',
     files: [
       '/foo/bar.txt',
-      '/foo/baz/*'
-    ]
-  }
+      '/foo/baz/*',
+    ],
+  };
 
   const snippet2Object = {
     id: 'snippet2',
     body: 'once upon a time...',
     files: [
-      '/pizzazz/**/*.html'
-    ]
-  }
+      '/pizzazz/**/*.html',
+    ],
+  };
 
-  const snippet1Map =  new Map([
+  const snippet1Map = new Map([
     ['id', 'snippet1'],
     ['body', 'let me tell you something...'],
-    ['files', ['/foo/bar.txt', '/foo/baz/*']]
-  ])
+    ['files', ['/foo/bar.txt', '/foo/baz/*']],
+  ]);
 
   const snippet2Map = new Map([
     ['id', 'snippet2'],
     ['body', 'once upon a time...'],
-    ['files', ['/pizzazz/**/*.html']]
-  ])
+    ['files', ['/pizzazz/**/*.html']],
+  ]);
 
   test('valid config', () => {
     const input = {
       comment: {
-        'header': 'hello',
-        'footer': 'bye',
-        'snippets': [snippet1Object, snippet2Object]
-      }
-    }
+        header: 'hello',
+        footer: 'bye',
+        snippets: [snippet1Object, snippet2Object],
+      },
+    };
 
     const output = new Map([
       ['header', 'hello'],
       ['footer', 'bye'],
-      ['snippets', [snippet1Map, snippet2Map]]
+      ['snippets', [snippet1Map, snippet2Map]],
     ]);
 
     expect(config.validateCommentConfig(input)).toEqual(output);
@@ -51,18 +51,18 @@ describe('validateCommentConfig', () => {
   test('removes unknown keys', () => {
     const input = {
       comment: {
-        'header': 'hello',
-        'footer': 'bye',
-        'whaaat': 'dunno',
-        'id': '342',
-        'snippets': [snippet1Object, snippet2Object]
-      }
-    }
+        header: 'hello',
+        footer: 'bye',
+        whaaat: 'dunno',
+        id: '342',
+        snippets: [snippet1Object, snippet2Object],
+      },
+    };
 
     const output = new Map([
       ['header', 'hello'],
       ['footer', 'bye'],
-      ['snippets', [snippet1Map, snippet2Map]]
+      ['snippets', [snippet1Map, snippet2Map]],
     ]);
 
     expect(config.validateCommentConfig(input)).toEqual(output);
@@ -71,15 +71,15 @@ describe('validateCommentConfig', () => {
   test('header can be missing', () => {
     const input = {
       comment: {
-        'footer': 'bye',
-        'snippets': [snippet2Object]
-      }
-    }
+        footer: 'bye',
+        snippets: [snippet2Object],
+      },
+    };
 
     const output = new Map([
       ['header', undefined],
       ['footer', 'bye'],
-      ['snippets', [snippet2Map]]
+      ['snippets', [snippet2Map]],
     ]);
 
     expect(config.validateCommentConfig(input)).toEqual(output);
@@ -88,15 +88,15 @@ describe('validateCommentConfig', () => {
   test('footer can be missing', () => {
     const input = {
       comment: {
-        'header': 'hello',
-        'snippets': [snippet2Object]
-      }
-    }
+        header: 'hello',
+        snippets: [snippet2Object],
+      },
+    };
 
     const output = new Map([
       ['header', 'hello'],
       ['footer', undefined],
-      ['snippets', [snippet2Map]]
+      ['snippets', [snippet2Map]],
     ]);
 
     expect(config.validateCommentConfig(input)).toEqual(output);
@@ -105,9 +105,9 @@ describe('validateCommentConfig', () => {
   test('header must be a string', () => {
     const input = {
       comment: {
-        'header': 2
-      }
-    }
+        header: 2,
+      },
+    };
 
     expect(() => config.validateCommentConfig(input)).toThrow(/found unexpected value type 'number' under key '\.comment\.header' \(should be a string\)/);
   });
@@ -115,17 +115,17 @@ describe('validateCommentConfig', () => {
   test('footer must be a string', () => {
     const input = {
       comment: {
-        'footer': 2
-      }
-    }
+        footer: 2,
+      },
+    };
 
     expect(() => config.validateCommentConfig(input)).toThrow(/found unexpected value type 'number' under key '\.comment\.footer' \(should be a string\)/);
   });
 
   test('snippets is required', () => {
     const input = {
-      comment: {}
-    }
+      comment: {},
+    };
 
     expect(() => config.validateCommentConfig(input)).toThrow(/found unexpected value type under key '\.comment\.snippets' \(should be a non-empty array\)/);
   });
@@ -133,9 +133,9 @@ describe('validateCommentConfig', () => {
   test('snippets must be an array', () => {
     const input = {
       comment: {
-        'snippets': 2
-      }
-    }
+        snippets: 2,
+      },
+    };
 
     expect(() => config.validateCommentConfig(input)).toThrow(/found unexpected value type under key '\.comment\.snippets' \(should be a non-empty array\)/);
   });
@@ -143,9 +143,9 @@ describe('validateCommentConfig', () => {
   test('snippets must be a non-empty array', () => {
     const input = {
       comment: {
-        'snippets': []
-      }
-    }
+        snippets: [],
+      },
+    };
 
     expect(() => config.validateCommentConfig(input)).toThrow(/found unexpected value type under key '\.comment\.snippets' \(should be a non-empty array\)/);
   });
@@ -156,11 +156,11 @@ describe('validateCommentConfig', () => {
         snippets: [
           {
             body: '',
-            files: ['foo.txt']
-          }
-        ]
-      }
-    }
+            files: ['foo.txt'],
+          },
+        ],
+      },
+    };
 
     expect(() => config.validateCommentConfig(input)).toThrow(/found unexpected value type 'undefined' under key '\.comment\.snippets\.0\.id' \(should be a string\)/);
   });
@@ -172,20 +172,20 @@ describe('validateCommentConfig', () => {
           {
             id: 'snippet1',
             body: '',
-            files: ['foo.txt']
+            files: ['foo.txt'],
           },
           {
             body: '',
-            files: ['foo.txt']
+            files: ['foo.txt'],
           },
           {
             id: 'snippet3',
             body: '',
-            files: ['foo.txt']
-          }
-        ]
-      }
-    }
+            files: ['foo.txt'],
+          },
+        ],
+      },
+    };
 
     expect(() => config.validateCommentConfig(input)).toThrow(/found unexpected value type 'undefined' under key '\.comment\.snippets\.1\.id' \(should be a string\)/);
   });
@@ -196,11 +196,11 @@ describe('validateCommentConfig', () => {
         snippets: [
           {
             id: 'foo',
-            files: ['foo.txt']
-          }
-        ]
-      }
-    }
+            files: ['foo.txt'],
+          },
+        ],
+      },
+    };
 
     expect(() => config.validateCommentConfig(input)).toThrow(/found unexpected value type 'undefined' under key '\.comment\.snippets\.0\.body' \(should be a string\)/);
   });
@@ -211,11 +211,11 @@ describe('validateCommentConfig', () => {
         snippets: [
           {
             id: 'foo',
-            body: 'foo'
-          }
-        ]
-      }
-    }
+            body: 'foo',
+          },
+        ],
+      },
+    };
 
     expect(() => config.validateCommentConfig(input)).toThrow(/found unexpected value type under key '\.comment\.snippets\.0\.files' \(should be a non-empty array of strings\)/);
   });
@@ -227,11 +227,11 @@ describe('validateCommentConfig', () => {
           {
             id: 'foo',
             body: 'foo',
-            files: []
-          }
-        ]
-      }
-    }
+            files: [],
+          },
+        ],
+      },
+    };
 
     expect(() => config.validateCommentConfig(input)).toThrow(/found unexpected value type under key '\.comment\.snippets\.0\.files' \(should be a non-empty array of strings\)/);
   });
@@ -243,11 +243,11 @@ describe('validateCommentConfig', () => {
           {
             id: 'foo',
             body: 'foo',
-            files: ['bar', 4]
-          }
-        ]
-      }
-    }
+            files: ['bar', 4],
+          },
+        ],
+      },
+    };
 
     expect(() => config.validateCommentConfig(input)).toThrow(/found unexpected value type under key '\.comment\.snippets\.0\.files' \(should be a non-empty array of strings\)/);
   });
@@ -259,16 +259,16 @@ describe('validateCommentConfig', () => {
           {
             id: 'foo',
             body: '',
-            files: ['foo.txt']
+            files: ['foo.txt'],
           },
           {
             id: 'foo',
             body: '',
-            files: ['foo.txt']
-          }
-        ]
-      }
-    }
+            files: ['foo.txt'],
+          },
+        ],
+      },
+    };
 
     expect(() => config.validateCommentConfig(input)).toThrow(/found duplicate snippet id 'foo'/);
   });
