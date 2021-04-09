@@ -1,0 +1,18 @@
+name: 'PR Commenter'
+description: 'Adds a comment to a PR that can differ depending on which files are being changed in that PR.'
+author: angelikatyborska
+inputs:
+  github_token:
+    description: 'Auth token used to manage issues or pull requests'
+    default: ${{ github.token }}
+    required: false
+  config_file:
+    description: 'The path to the configuration file'
+    default: '.github/pr-commenter.yml'
+    required: false
+runs:
+  using: 'node12'
+  main: 'lib/index.js'
+branding:
+  icon: 'message-circle'
+  color: 'purple'
