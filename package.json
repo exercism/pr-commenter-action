@@ -16,5 +16,9 @@
   "bugs": {
     "url": "https://github.com/angelikatyborska/pr-commenter-action/issues"
   },
-  "homepage": "https://github.com/angelikatyborska/pr-commenter-action#readme"
+  "homepage": "https://github.com/angelikatyborska/pr-commenter-action#readme",
+  "dependencies": {
+    "@actions/core": "^1.2.6",
+    "@actions/github": "^4.0.0"
+  }
 }
