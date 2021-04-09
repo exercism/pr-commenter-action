@@ -165,6 +165,22 @@ describe('validateCommentConfig', () => {
     expect(() => config.validateCommentConfig(input)).toThrow(/found unexpected value type 'undefined' under key '\.comment\.snippets\.0\.id' \(should be a string\)/);
   });
 
+  test('snippet id can only contain letters, numbers, a dash, and an underscore', () => {
+    const input = {
+      comment: {
+        snippets: [
+          {
+            id: 'can this have spaces?',
+            body: '',
+            files: ['foo.txt'],
+          },
+        ],
+      },
+    };
+
+    expect(() => config.validateCommentConfig(input)).toThrow(/found invalid snippet id 'can this have spaces\?' \(snippet ids must contain only letters, numbers, dashes, and underscores\)/);
+  });
+
   test('error message uses the correct snippet index', () => {
     const input = {
       comment: {

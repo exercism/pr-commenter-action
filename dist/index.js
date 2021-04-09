@@ -5,6 +5,21 @@ module.exports =
 /***/ 1667:
 /***/ ((module) => {
 
+function commentMetadata(snippetIds) {
+  return `<!-- pr-commenter-metadata: ${snippetIds.join(',')} -->`;
+}
+
+function extractCommentMetadata(commentBody) {
+  // snippet id regex plus a comma
+  const regex = /<!-- pr-commenter-metadata: ([A-Za-z0-9\-_,]*) -->/;
+  const match = regex.exec(commentBody);
+
+  if (match) {
+    return match[1].split(',').map((s) => s.trim()).filter((s) => s !== '');
+  }
+  return null;
+}
+
 function assembleComment(snippetIds, commentConfig) {
   let strings = [
     commentConfig.get('header'),
@@ -15,13 +30,15 @@ function assembleComment(snippetIds, commentConfig) {
       return null;
     }),
     commentConfig.get('footer'),
+    commentMetadata(snippetIds),
   ];
 
   strings = strings.filter((s) => !!s);
+
   return strings.join('\n\n');
 }
 
-module.exports = { assembleComment };
+module.exports = { assembleComment, extractCommentMetadata };
 
 
 /***/ }),
@@ -59,7 +76,14 @@ function validateCommentConfig(configObject) {
       const snippetMap = new Map();
 
       if (typeof snippetObject.id === 'string') {
-        snippetMap.set('id', snippetObject.id);
+        const regex = /^[A-Za-z0-9\-_,]*$/;
+        if (regex.exec(snippetObject.id)) {
+          snippetMap.set('id', snippetObject.id);
+        } else {
+          throw Error(
+            `found invalid snippet id '${snippetObject.id}' (snippet ids must contain only letters, numbers, dashes, and underscores)`,
+          );
+        }
       } else {
         throw Error(
           `found unexpected value type '${typeof snippetObject.id}' under key '.comment.snippets.${index}.id' (should be a string)`,
@@ -3957,7 +3981,7 @@ var config = __nccwpck_require__(88);
 // EXTERNAL MODULE: ./lib/snippets.js
 var snippets = __nccwpck_require__(9920);
 // EXTERNAL MODULE: ./lib/comment.js
-var comment = __nccwpck_require__(1667);
+var lib_comment = __nccwpck_require__(1667);
 // CONCATENATED MODULE: ./lib/index.js
 
 
@@ -3990,18 +4014,28 @@ async function run() {
 
     const snippetIds = (0,snippets.getMatchingSnippetIds)(changedFiles, commentConfig);
 
-    await getPRComments(client, prNumber)
+    const { comment, previousSnippetIds } = await getPreviousPRComment(client, prNumber);
 
-    // TODO: do not post a comment if snippetIds is empty ?
+    if (comment) {
+      core.debug('removing previous comment');
+    }
 
-    const commentBody = (0,comment.assembleComment)(snippetIds, commentConfig);
+    if (snippetIds.length > 0) {
+      if (!!previousSnippetIds && previousSnippetIds.join(',') !== snippetIds.join(',')) {
+        const commentBody = (0,lib_comment.assembleComment)(snippetIds, commentConfig);
 
-    await client.issues.createComment({
-      owner: github.context.repo.owner,
-      repo: github.context.repo.repo,
-      issue_number: prNumber,
-      body: commentBody,
-    });
+        await client.issues.createComment({
+          owner: github.context.repo.owner,
+          repo: github.context.repo.repo,
+          issue_number: prNumber,
+          body: commentBody,
+        });
+      } else {
+        core.debug('snippet ids are identical as in the previous PR comment made by this action, not creating a PR comment');
+      }
+    } else {
+      core.debug('snippet ids array is empty, not creating a PR comment');
+    }
   } catch (error) {
     core.error(error);
     core.setFailed(error.message);
@@ -4054,16 +4088,32 @@ async function fetchContent(client, repoPath) {
   return Buffer.from(response.data.content, response.data.encoding).toString();
 }
 
-async function getPRComments(client, prNumber) {
+async function getPreviousPRComment(client, prNumber) {
   const { data: comments } = await client.issues.listComments({
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
-    issue_number: prNumber
-  })
+    issue_number: prNumber,
+  });
 
-  console.log(comments)
+  const botComments = comments.filter((c) => c.user.type === 'Bot');
+  const comment = botComments.find((c) => (0,lib_comment.extractCommentMetadata)(c.body) !== null);
 
-  return comments
+  if (comment) {
+    const previousSnippetIds = (0,lib_comment.extractCommentMetadata)(comment.body);
+
+    core.debug(`found previous a comment made by pr-commenter: ${comment.url}`);
+    core.debug(`extracted snippet ids from previous comment: ${previousSnippetIds.join(', ')}`);
+
+    return {
+      comment,
+      previousSnippetIds,
+    };
+  }
+
+  return {
+    comment: null,
+    previousSnippetIds: null,
+  };
 }
 
 run();
