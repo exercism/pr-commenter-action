@@ -4021,7 +4021,7 @@ async function run() {
     }
 
     if (snippetIds.length > 0) {
-      if (!!previousSnippetIds && previousSnippetIds.join(',') !== snippetIds.join(',')) {
+      if (!previousSnippetIds || previousSnippetIds.join(',') !== snippetIds.join(',')) {
         const commentBody = (0,lib_comment.assembleComment)(snippetIds, commentConfig);
 
         await client.issues.createComment({
