@@ -33,6 +33,7 @@ describe('validateCommentConfig', () => {
   test('valid config', () => {
     const input = {
       comment: {
+        'on-update': 'nothing',
         header: 'hello',
         footer: 'bye',
         snippets: [snippet1Object, snippet2Object],
@@ -40,6 +41,7 @@ describe('validateCommentConfig', () => {
     };
 
     const output = new Map([
+      ['onUpdate', 'nothing'],
       ['header', 'hello'],
       ['footer', 'bye'],
       ['snippets', [snippet1Map, snippet2Map]],
@@ -51,6 +53,7 @@ describe('validateCommentConfig', () => {
   test('removes unknown keys', () => {
     const input = {
       comment: {
+        'on-update': 'nothing',
         header: 'hello',
         footer: 'bye',
         whaaat: 'dunno',
@@ -60,6 +63,7 @@ describe('validateCommentConfig', () => {
     };
 
     const output = new Map([
+      ['onUpdate', 'nothing'],
       ['header', 'hello'],
       ['footer', 'bye'],
       ['snippets', [snippet1Map, snippet2Map]],
@@ -71,12 +75,14 @@ describe('validateCommentConfig', () => {
   test('header can be missing', () => {
     const input = {
       comment: {
+        'on-update': 'edit',
         footer: 'bye',
         snippets: [snippet2Object],
       },
     };
 
     const output = new Map([
+      ['onUpdate', 'edit'],
       ['header', undefined],
       ['footer', 'bye'],
       ['snippets', [snippet2Map]],
@@ -88,12 +94,14 @@ describe('validateCommentConfig', () => {
   test('footer can be missing', () => {
     const input = {
       comment: {
+        'on-update': 'edit',
         header: 'hello',
         snippets: [snippet2Object],
       },
     };
 
     const output = new Map([
+      ['onUpdate', 'edit'],
       ['header', 'hello'],
       ['footer', undefined],
       ['snippets', [snippet2Map]],
@@ -120,6 +128,16 @@ describe('validateCommentConfig', () => {
     };
 
     expect(() => config.validateCommentConfig(input)).toThrow(/found unexpected value type 'number' under key '\.comment\.footer' \(should be a string\)/);
+  });
+
+  test('on-update must be one of known values', () => {
+    const input = {
+      comment: {
+        'on-update': 'whatever',
+      },
+    };
+
+    expect(() => config.validateCommentConfig(input)).toThrow(/found unexpected value 'whatever' under key '\.comment\.on-update' \(should be one of: recreate, edit, nothing\)/);
   });
 
   test('snippets is required', () => {

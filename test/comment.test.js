@@ -1,7 +1,7 @@
 const comment = require('../lib/comment');
 
 describe('comment', () => {
-  describe('validateCommentConfig', () => {
+  describe('assembleCommentBody', () => {
     test('header, footer, and many snippets', () => {
       const commentConfig = new Map([
         ['header', 'hello'],
@@ -18,14 +18,14 @@ describe('comment', () => {
         ]],
       ]);
 
-      expect(comment.assembleComment(['snippet1'], commentConfig)).toEqual(
+      expect(comment.assembleCommentBody(['snippet1'], commentConfig)).toEqual(
         'hello\n\n'
         + 'A list:\n- one\n- two\n- three\n\n'
         + 'bye\n\n'
         + '<!-- pr-commenter-metadata: snippet1 -->',
       );
 
-      expect(comment.assembleComment(['snippet1', 'snippet2'], commentConfig)).toEqual(
+      expect(comment.assembleCommentBody(['snippet1', 'snippet2'], commentConfig)).toEqual(
         'hello\n\n'
         + 'A list:\n- one\n- two\n- three\n\n'
         + 'Do not forget to be awesome!\n\n'
@@ -50,7 +50,7 @@ describe('comment', () => {
         ]],
       ]);
 
-      expect(comment.assembleComment(['snippet1', 'snippet2'], commentConfig)).toEqual(
+      expect(comment.assembleCommentBody(['snippet1', 'snippet2'], commentConfig)).toEqual(
         'A list:\n- one\n- two\n- three\n\n'
         + 'Do not forget to be awesome!\n\n'
         + 'bye\n\n'
@@ -74,7 +74,7 @@ describe('comment', () => {
         ]],
       ]);
 
-      expect(comment.assembleComment(['snippet1', 'snippet2'], commentConfig)).toEqual(
+      expect(comment.assembleCommentBody(['snippet1', 'snippet2'], commentConfig)).toEqual(
         'hello\n\n'
         + 'A list:\n- one\n- two\n- three\n\n'
         + 'Do not forget to be awesome!\n\n'
@@ -98,7 +98,7 @@ describe('comment', () => {
         ]],
       ]);
 
-      expect(comment.assembleComment(['snippet1', 'snippet2'], commentConfig)).toEqual(
+      expect(comment.assembleCommentBody(['snippet1', 'snippet2'], commentConfig)).toEqual(
         'A list:\n- one\n- two\n- three\n\n'
         + 'Do not forget to be awesome!\n\n'
         + '<!-- pr-commenter-metadata: snippet1,snippet2 -->',
@@ -154,6 +154,168 @@ describe('comment', () => {
       const expectedResult = null;
 
       expect(comment.extractCommentMetadata(commentBody)).toEqual(expectedResult);
+    });
+  });
+
+  describe('comment create/delete/edit logic', () => {
+    test('no previous comment, no snippets detected', () => {
+      const previousComment = undefined;
+      const snippetIds = [];
+
+      let commentConfig = new Map([['onUpdate', 'recreate']]);
+
+      expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+      expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+      expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+
+      commentConfig = new Map([['onUpdate', 'edit']]);
+
+      expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+      expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+      expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+
+      commentConfig = new Map([['onUpdate', 'nothing']]);
+
+      expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+      expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+      expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+    });
+
+    test('no previous comment, some snippets detected', () => {
+      const previousComment = undefined;
+      const snippetIds = ['snippet1', 'snippet2'];
+
+      let commentConfig = new Map([['onUpdate', 'recreate']]);
+
+      expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
+        .toEqual(true);
+      expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+      expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+
+      commentConfig = new Map([['onUpdate', 'edit']]);
+
+      expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
+        .toEqual(true);
+      expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+      expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+
+      commentConfig = new Map([['onUpdate', 'nothing']]);
+
+      expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
+        .toEqual(true);
+      expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+      expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+    });
+
+    test('a previous comment with exactly the same snippets', () => {
+      const previousComment = { body: comment.commentMetadata(['snippet1', 'snippet2']) };
+      const snippetIds = ['snippet1', 'snippet2'];
+
+      let commentConfig = new Map([['onUpdate', 'recreate']]);
+
+      expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+      expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+      expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+
+      commentConfig = new Map([['onUpdate', 'edit']]);
+
+      expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+      expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+      expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+
+      commentConfig = new Map([['onUpdate', 'nothing']]);
+
+      expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+      expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+      expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+    });
+
+    test('a previous comment with different snippets', () => {
+      const previousComment = { body: comment.commentMetadata(['snippet2']) };
+      const snippetIds = ['snippet1', 'snippet2'];
+
+      let commentConfig = new Map([['onUpdate', 'recreate']]);
+
+      expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
+        .toEqual(true);
+      expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(true);
+      expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+
+      commentConfig = new Map([['onUpdate', 'edit']]);
+
+      expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+      expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+      expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(true);
+
+      commentConfig = new Map([['onUpdate', 'nothing']]);
+
+      expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+      expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+      expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+    });
+
+    test('a previous comment, new comment would have no snippets', () => {
+      const previousComment = { body: comment.commentMetadata(['snippet2']) };
+      const snippetIds = [];
+
+      let commentConfig = new Map([['onUpdate', 'recreate']]);
+
+      expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+      expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(true);
+      expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+
+      commentConfig = new Map([['onUpdate', 'edit']]);
+
+      expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+      expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(true);
+      expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+
+      commentConfig = new Map([['onUpdate', 'nothing']]);
+
+      expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+      expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+      expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
     });
   });
 });

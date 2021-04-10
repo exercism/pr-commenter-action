@@ -20,7 +20,7 @@ function extractCommentMetadata(commentBody) {
   return null;
 }
 
-function assembleComment(snippetIds, commentConfig) {
+function assembleCommentBody(snippetIds, commentConfig) {
   let strings = [
     commentConfig.get('header'),
     ...commentConfig.get('snippets').map((snippet) => {
@@ -38,7 +38,49 @@ function assembleComment(snippetIds, commentConfig) {
   return strings.join('\n\n');
 }
 
-module.exports = { assembleComment, extractCommentMetadata };
+function newCommentDifferentThanPreviousComment(previousComment, snippetIds) {
+  const previousSnippetIds = extractCommentMetadata(previousComment.body);
+
+  return previousSnippetIds.join(',') !== snippetIds.join(',');
+}
+
+function newCommentWouldHaveContent(snippetIds) {
+  return snippetIds.length > 0;
+}
+
+function shouldPostNewComment(previousComment, snippetIds, commentConfig) {
+  return newCommentWouldHaveContent(snippetIds) && (
+    !previousComment || (
+      !!previousComment
+      && commentConfig.get('onUpdate') === 'recreate'
+      && newCommentDifferentThanPreviousComment(previousComment, snippetIds)
+    )
+  );
+}
+
+function shouldDeletePreviousComment(previousComment, snippetIds, commentConfig) {
+  return !!previousComment && (
+    shouldPostNewComment(previousComment, snippetIds, commentConfig)
+    || (!newCommentWouldHaveContent(snippetIds) && commentConfig.get('onUpdate') !== 'nothing')
+  );
+}
+
+function shouldEditPreviousComment(previousComment, snippetIds, commentConfig) {
+  return newCommentWouldHaveContent(snippetIds) && (
+    !!previousComment
+      && commentConfig.get('onUpdate') === 'edit'
+      && newCommentDifferentThanPreviousComment(previousComment, snippetIds)
+  );
+}
+
+module.exports = {
+  commentMetadata,
+  assembleCommentBody,
+  extractCommentMetadata,
+  shouldPostNewComment,
+  shouldDeletePreviousComment,
+  shouldEditPreviousComment,
+};
 
 
 /***/ }),
@@ -60,6 +102,17 @@ function validateCommentConfig(configObject) {
   } else {
     throw Error(
       `found unexpected value type '${typeof configObject.comment.header}' under key '.comment.header' (should be a string)`,
+    );
+  }
+
+  const allowedOnUpdateValues = ['recreate', 'edit', 'nothing'];
+  if (configObject.comment['on-update'] === undefined || configObject.comment['on-update'] === null) {
+    configMap.set('onUpdate', allowedOnUpdateValues[0]);
+  } else if (allowedOnUpdateValues.includes(configObject.comment['on-update'])) {
+    configMap.set('onUpdate', configObject.comment['on-update']);
+  } else {
+    throw Error(
+      `found unexpected value '${configObject.comment['on-update']}' under key '.comment.on-update' (should be one of: ${allowedOnUpdateValues.join(', ')})`,
     );
   }
 
@@ -131,8 +184,108 @@ module.exports = { validateCommentConfig };
 
 /***/ }),
 
-/***/ 5356:
-/***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
+/***/ 5928:
+/***/ ((module, __webpack_exports__, __nccwpck_require__) => {
+
+"use strict";
+__nccwpck_require__.r(__webpack_exports__);
+/* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(5438);
+/* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__nccwpck_require__.n(_actions_github__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(2186);
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__nccwpck_require__.n(_actions_core__WEBPACK_IMPORTED_MODULE_1__);
+/* module decorator */ module = __nccwpck_require__.hmd(module);
+
+
+
+async function deleteComment(client, comment) {
+  return client.issues.deleteComment({
+    owner: _actions_github__WEBPACK_IMPORTED_MODULE_0__.context.repo.owner,
+    repo: _actions_github__WEBPACK_IMPORTED_MODULE_0__.context.repo.repo,
+    comment_id: comment.id,
+  });
+}
+
+async function editComment(client, comment, newBody) {
+  return client.issues.updateComment({
+    owner: _actions_github__WEBPACK_IMPORTED_MODULE_0__.context.repo.owner,
+    repo: _actions_github__WEBPACK_IMPORTED_MODULE_0__.context.repo.repo,
+    comment_id: comment.id,
+    body: newBody,
+  });
+}
+
+async function createComment(client, prNumber, body) {
+  return client.issues.createComment({
+    owner: _actions_github__WEBPACK_IMPORTED_MODULE_0__.context.repo.owner,
+    repo: _actions_github__WEBPACK_IMPORTED_MODULE_0__.context.repo.repo,
+    issue_number: prNumber,
+    body,
+  });
+}
+
+async function getChangedFiles(client, prNumber) {
+  const listFilesOptions = client.pulls.listFiles.endpoint.merge({
+    owner: _actions_github__WEBPACK_IMPORTED_MODULE_0__.context.repo.owner,
+    repo: _actions_github__WEBPACK_IMPORTED_MODULE_0__.context.repo.repo,
+    pull_number: prNumber,
+  });
+
+  const listFilesResponse = await client.paginate(listFilesOptions);
+  const changedFiles = listFilesResponse.map((f) => f.filename);
+
+  _actions_core__WEBPACK_IMPORTED_MODULE_1__.debug('found changed files:');
+  for (const file of changedFiles) {
+    _actions_core__WEBPACK_IMPORTED_MODULE_1__.debug(`  ${file}`);
+  }
+
+  return changedFiles;
+}
+
+async function getFileContent(client, repoPath) {
+  const response = await client.repos.getContent({
+    owner: _actions_github__WEBPACK_IMPORTED_MODULE_0__.context.repo.owner,
+    repo: _actions_github__WEBPACK_IMPORTED_MODULE_0__.context.repo.repo,
+    path: repoPath,
+    ref: _actions_github__WEBPACK_IMPORTED_MODULE_0__.context.sha,
+  });
+
+  return Buffer.from(response.data.content, response.data.encoding).toString();
+}
+
+async function getComments(client, prNumber) {
+  const { data: comments } = await client.issues.listComments({
+    owner: _actions_github__WEBPACK_IMPORTED_MODULE_0__.context.repo.owner,
+    repo: _actions_github__WEBPACK_IMPORTED_MODULE_0__.context.repo.repo,
+    issue_number: prNumber,
+  });
+
+  return comments;
+}
+
+module.exports = {
+  deleteComment,
+  editComment,
+  createComment,
+  getChangedFiles,
+  getFileContent,
+  getComments,
+};
+
+
+/***/ }),
+
+/***/ 4822:
+/***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const { run } = __nccwpck_require__(1712);
+
+run();
+
+
+/***/ }),
+
+/***/ 1712:
+/***/ ((module, __webpack_exports__, __nccwpck_require__) => {
 
 "use strict";
 // ESM COMPAT FLAG
@@ -3980,15 +4133,30 @@ var jsYaml = {
 var config = __nccwpck_require__(88);
 // EXTERNAL MODULE: ./lib/snippets.js
 var snippets = __nccwpck_require__(9920);
-// EXTERNAL MODULE: ./lib/comment.js
-var comment = __nccwpck_require__(1667);
-// CONCATENATED MODULE: ./lib/index.js
+// CONCATENATED MODULE: ./lib/run.js
+/* module decorator */ module = __nccwpck_require__.hmd(module);
 
 
 
 
 
 
+const {
+  assembleCommentBody,
+  extractCommentMetadata,
+  shouldPostNewComment,
+  shouldDeletePreviousComment,
+  shouldEditPreviousComment,
+} = __nccwpck_require__(1667);
+
+const {
+  deleteComment,
+  editComment,
+  createComment,
+  getChangedFiles,
+  getFileContent,
+  getComments,
+} = __nccwpck_require__(5928);
 
 async function run() {
   try {
@@ -4010,35 +4178,23 @@ async function run() {
     const commentConfig = await getCommentConfig(client, configPath);
 
     const snippetIds = (0,snippets.getMatchingSnippetIds)(changedFiles, commentConfig);
+    const previousComment = await getPreviousPRComment(client, prNumber);
 
-    const { previousComment, previousSnippetIds } = await getPreviousPRComment(client, prNumber);
-
-    const newCommentDifferentThanPreviousComment = previousSnippetIds.join(',') !== snippetIds.join(',');
-
-    if (previousComment && newCommentDifferentThanPreviousComment) {
+    if (shouldDeletePreviousComment(previousComment, snippetIds, commentConfig)) {
       core.debug('removing previous comment');
-      await client.issues.deleteComment({
-        owner: github.context.repo.owner,
-        repo: github.context.repo.repo,
-        comment_id: previousComment.id,
-      });
+      await deleteComment(client, previousComment);
     }
 
-    if (snippetIds.length > 0) {
-      if (!previousComment || newCommentDifferentThanPreviousComment) {
-        const commentBody = (0,comment.assembleComment)(snippetIds, commentConfig);
+    const commentBody = assembleCommentBody(snippetIds, commentConfig);
 
-        await client.issues.createComment({
-          owner: github.context.repo.owner,
-          repo: github.context.repo.repo,
-          issue_number: prNumber,
-          body: commentBody,
-        });
-      } else {
-        core.debug('snippet ids are identical as in the previous PR comment made by this action, not creating a PR comment');
-      }
-    } else {
-      core.debug('snippet ids array is empty, not creating a PR comment');
+    if (shouldEditPreviousComment(previousComment, snippetIds, commentConfig)) {
+      core.debug('updating previous comment');
+      await editComment(client, previousComment, commentBody);
+    }
+
+    if (shouldPostNewComment(previousComment, snippetIds, commentConfig)) {
+      core.debug('creating a new comment');
+      await createComment(client, prNumber, commentBody);
     }
   } catch (error) {
     core.error(error);
@@ -4055,73 +4211,34 @@ function getPrNumber() {
   return pullRequest.number;
 }
 
-async function getChangedFiles(client, prNumber) {
-  const listFilesOptions = client.pulls.listFiles.endpoint.merge({
-    owner: github.context.repo.owner,
-    repo: github.context.repo.repo,
-    pull_number: prNumber,
-  });
-
-  const listFilesResponse = await client.paginate(listFilesOptions);
-  const changedFiles = listFilesResponse.map((f) => f.filename);
-
-  core.debug('found changed files:');
-  for (const file of changedFiles) {
-    core.debug(`  ${file}`);
-  }
-
-  return changedFiles;
-}
-
 async function getCommentConfig(client, configurationPath) {
-  const configurationContent = await fetchContent(client, configurationPath);
+  const configurationContent = await getFileContent(client, configurationPath);
   const configObject = load$1(configurationContent);
 
   // transform object to a map or throw if yaml is malformed:
   return (0,config.validateCommentConfig)(configObject);
 }
 
-async function fetchContent(client, repoPath) {
-  const response = await client.repos.getContent({
-    owner: github.context.repo.owner,
-    repo: github.context.repo.repo,
-    path: repoPath,
-    ref: github.context.sha,
-  });
-
-  return Buffer.from(response.data.content, response.data.encoding).toString();
-}
-
 async function getPreviousPRComment(client, prNumber) {
-  const { data: comments } = await client.issues.listComments({
-    owner: github.context.repo.owner,
-    repo: github.context.repo.repo,
-    issue_number: prNumber,
-  });
+  const comments = getComments(client, prNumber);
 
   const newestFirst = (c1, c2) => c2.created_at.localeCompare(c1.created_at);
   const botComments = comments.filter((c) => c.user.type === 'Bot').sort(newestFirst);
-  const previousComment = botComments.find((c) => (0,comment.extractCommentMetadata)(c.body) !== null);
+  const previousComment = botComments.find((c) => extractCommentMetadata(c.body) !== null);
 
   if (previousComment) {
-    const previousSnippetIds = (0,comment.extractCommentMetadata)(previousComment.body);
+    const previousSnippetIds = extractCommentMetadata(previousComment.body);
 
     core.debug(`found previous comment made by pr-commenter: ${previousComment.url}`);
     core.debug(`extracted snippet ids from previous comment: ${previousSnippetIds.join(', ')}`);
 
-    return {
-      previousComment,
-      previousSnippetIds,
-    };
+    return previousComment;
   }
 
-  return {
-    previousComment: null,
-    previousSnippetIds: null,
-  };
+  return null;
 }
 
-run();
+module.exports = { run };
 
 
 /***/ }),
@@ -11477,8 +11594,8 @@ module.exports = require("zlib");;
 /******/ 		}
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = __webpack_module_cache__[moduleId] = {
-/******/ 			// no module.id needed
-/******/ 			// no module.loaded needed
+/******/ 			id: moduleId,
+/******/ 			loaded: false,
 /******/ 			exports: {}
 /******/ 		};
 /******/ 	
@@ -11491,11 +11608,58 @@ module.exports = require("zlib");;
 /******/ 			if(threw) delete __webpack_module_cache__[moduleId];
 /******/ 		}
 /******/ 	
+/******/ 		// Flag the module as loaded
+/******/ 		module.loaded = true;
+/******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
 /******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/compat get default export */
+/******/ 	(() => {
+/******/ 		// getDefaultExport function for compatibility with non-harmony modules
+/******/ 		__nccwpck_require__.n = (module) => {
+/******/ 			var getter = module && module.__esModule ?
+/******/ 				() => module['default'] :
+/******/ 				() => module;
+/******/ 			__nccwpck_require__.d(getter, { a: getter });
+/******/ 			return getter;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__nccwpck_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/harmony module decorator */
+/******/ 	(() => {
+/******/ 		__nccwpck_require__.hmd = (module) => {
+/******/ 			module = Object.create(module);
+/******/ 			if (!module.children) module.children = [];
+/******/ 			Object.defineProperty(module, 'exports', {
+/******/ 				enumerable: true,
+/******/ 				set: () => {
+/******/ 					throw new Error('ES Modules may not assign module.exports or exports.*, Use ESM export syntax, instead: ' + module.id);
+/******/ 				}
+/******/ 			});
+/******/ 			return module;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__nccwpck_require__.o = (obj, prop) => Object.prototype.hasOwnProperty.call(obj, prop)
+/******/ 	})();
+/******/ 	
 /******/ 	/* webpack/runtime/make namespace object */
 /******/ 	(() => {
 /******/ 		// define __esModule on exports
@@ -11513,6 +11677,6 @@ module.exports = require("zlib");;
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __nccwpck_require__(5356);
+/******/ 	return __nccwpck_require__(4822);
 /******/ })()
 ;
