@@ -273,12 +273,14 @@ module.exports = {
 const core = __nccwpck_require__(2186);
 const { run } = __nccwpck_require__(7884);
 
-try {
-  run();
-} catch (error) {
-  core.error(error);
-  core.setFailed(error.message);
-}
+(async () => {
+  try {
+    await run();
+  } catch (error) {
+    core.error(error);
+    core.setFailed(error.message);
+  }
+})();
 
 
 /***/ }),
