@@ -1,6 +1,6 @@
 name: 'PR Commenter'
 description: 'Adds a comment to a PR that can differ depending on which files are being changed in that PR.'
-author: angelikatyborska
+author: exercism
 inputs:
   github-token:
     description: 'Auth token used to manage issues or pull requests'

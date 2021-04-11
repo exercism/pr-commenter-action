@@ -10,15 +10,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/angelikatyborska/pr-commenter-action.git"
+    "url": "git+https://github.com/exercism/pr-commenter-action.git"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/angelikatyborska/pr-commenter-action/issues"
+    "url": "https://github.com/exercism/pr-commenter-action/issues"
   },
-  "homepage": "https://github.com/angelikatyborska/pr-commenter-action#readme",
+  "homepage": "https://github.com/exercism/pr-commenter-action#readme",
   "dependencies": {
     "@actions/core": "^1.2.6",
     "@actions/github": "^4.0.0",

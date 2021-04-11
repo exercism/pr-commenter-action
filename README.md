@@ -17,7 +17,7 @@ jobs:
   pr-comment:
     runs-on: ubuntu-latest
     steps:
-      - uses: angelikatyborska/pr-commenter-action@v1
+      - uses: exercism/pr-commenter-action@v1
         with:
           github-token: "${{ github.token }}"
           config-file: ".github/pr-commenter.yml"
@@ -35,7 +35,7 @@ comment:
 
   footer: |
     ---
-    Automated comment created by [PR Commenter](https://github.com/angelikatyborska/pr-commenter-action) :robot:.
+    Automated comment created by [PR Commenter](https://github.com/exercism/pr-commenter-action) :robot:.
 
   snippets:
     - id: any-markdown-file-changed
