@@ -118,7 +118,7 @@ A list of globs (strings) and/or match objects. If at least one file changed in 
 Example:
 
 ```yaml
-# Any markdown file changed in any directory
+# any markdown file changed in any directory
 comment:
   snippets:
     - id: any-markdown-file-changed
@@ -137,7 +137,8 @@ A match object contains the keys `any` and/or `all` with a list of globs.
 Example:
 
 ```yaml
-# At least one root-level markdown file changed and none of the changed files is the README.md
+# at least one root-level markdown file changed
+# and none of the changed files is the README.md
 comment:
   snippets:
     - id: any-markdown-file-changed-but-readme
