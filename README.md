@@ -42,26 +42,70 @@ comment:
       files:
         - '**/*.md'
       body: |
-        It looks like you're changing a Markdown file. Make sure your changes follow our [language guidelines](some-link) when writing documentation.
+        It looks like you're changing a Markdown file.
+        Make sure your changes follow our [language guidelines](some-link) when writing documentation.
 ```
 
 ## Reference
 
 ### Workflow inputs
 
-| Name | Description | Required? | Default |
-| ---- | ----------- | --------- | ------- |
-| `repo-token` | Auth token used to manage issues or pull requests | true | `${{ github.token }}` |
-| `config-file` | The path to the action configuration file | true | `.github/pr-commenter.yml` |
+#### `repo-token`
+
+Auth token used to manage issues or pull requests.
+
+**Required**: true
+
+**Default**: `${{ github.token }}`
+
+#### `config-file`
+
+**Required**: true
+
+**Default**: `.github/pr-commenter.yml`
 
 ### Configuration file
 
-| Key | Description | Required? | Default |
-| --- | ----------- | --------- | ------- |
-| `comment.on-update` | One of: `recreate`, `edit`, and `nothing`. Dictates what should happen if a comment was already created on this PR, but more changes were pushed to the PR and the comment needs to change. `recreate` means delete the old comment and create a new one, `edit`, means edit the old comment, and `nothing` means leave the old comment unchanged. | true | `recreate` |
-| `comment.header` | An optional text to be included at the beginning of each comment. | false | |
-| `comment.footer` | An optional text to be included at the end of each comment. | false | |
-| `comment.snippets` | A list of comment snippet configurations. At least one snippet is required. Note that a PR comment will only be created if at least one of the snippets match, even if `comment.header` and/or `comment.footer` are given. | true | |
-| `comment.snippets[].id` | A string consisting of letters, numbers, `-`, and `_`. | true | |
-| `comment.snippets[].files` | A list of glob expressions. If a file matching any of those expressions is being changed in the PR, this snippet's body will be included in the comment. | true | |
-| `comment.snippets[].body` | The text to be included in the PR comment. | true | |
+#### `comment.on-update`
+
+One of: `recreate`, `edit`, and `nothing`. Dictates what should happen if a comment was already created on this PR, but more changes were pushed to the PR and the comment needs to change. `recreate` means delete the old comment and create a new one, `edit`, means edit the old comment, and `nothing` means leave the old comment unchanged.
+
+**Required**: true
+**Default**: `recreate`
+
+#### `comment.header`
+
+An optional text to be included at the beginning of each comment. 
+
+**Required**: false
+
+#### `comment.footer`
+
+An optional text to be included at the end of each comment. 
+
+**Required**: false
+
+#### `comment.snippets`
+
+A list of comment snippet configurations. At least one snippet is required. Note that a PR comment will only be created if at least one of the snippets match, even if `comment.header` and/or `comment.footer` are given.
+
+**Required**: true
+
+#### `comment.snippets[].id`
+
+A string consisting of letters, numbers, `-`, and `_`. 
+
+**Required**: true
+
+#### `comment.snippets[].files`
+
+A list of glob expressions. If a file matching any of those expressions is being changed in the PR, this snippet's body will be included in the comment.
+
+**Required**: true
+
+#### `comment.snippets[].body`
+
+The text to be included in the PR comment.
+
+**Required**: true
+
