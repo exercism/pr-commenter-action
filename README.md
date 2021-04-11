@@ -40,6 +40,7 @@ comment:
   snippets:
     - id: any-markdown-file-changed
       files:
+        - '*.md'
         - '**/*.md'
       body: |
         It looks like you're changing a Markdown file.
@@ -136,14 +137,13 @@ A match object contains the keys `any` and/or `all` with a list of globs.
 Example:
 
 ```yaml
-# Any markdown file changed but the root-level README.md
+# At least one root-level markdown file changed and none of the changed files is the README.md
 comment:
   snippets:
     - id: any-markdown-file-changed-but-readme
       files:
         - any: ['*.md']
           all: ['!README.md']
-        - '**/*.md'
 ```
 
 **Required**: true
