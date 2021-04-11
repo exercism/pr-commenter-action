@@ -71,6 +71,7 @@ Auth token used to manage issues or pull requests.
 One of: `recreate`, `edit`, and `nothing`. Dictates what should happen if a comment was already created on this PR, but more changes were pushed to the PR and the comment needs to change. `recreate` means delete the old comment and create a new one, `edit`, means edit the old comment, and `nothing` means leave the old comment unchanged.
 
 **Required**: true
+
 **Default**: `recreate`
 
 #### `comment.header`
@@ -93,7 +94,7 @@ A list of comment snippet configurations. At least one snippet is required. Note
 
 #### `comment.snippets[].id`
 
-A string consisting of letters, numbers, `-`, and `_`. 
+A string consisting of letters, numbers, `-`, and `_`.
 
 **Required**: true
 
