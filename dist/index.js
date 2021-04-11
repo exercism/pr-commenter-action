@@ -333,19 +333,19 @@ async function run() {
   const previousComment = await getPreviousPRComment(client, prNumber);
 
   if (shouldDeletePreviousComment(previousComment, snippetIds, commentConfig)) {
-    core.debug('removing previous comment');
+    core.info('removing previous comment');
     await deleteComment(client, previousComment);
   }
 
   const commentBody = assembleCommentBody(snippetIds, commentConfig);
 
   if (shouldEditPreviousComment(previousComment, snippetIds, commentConfig)) {
-    core.debug('updating previous comment');
+    core.info('updating previous comment');
     await editComment(client, previousComment, commentBody);
   }
 
   if (shouldPostNewComment(previousComment, snippetIds, commentConfig)) {
-    core.debug('creating a new comment');
+    core.info('creating a new comment');
     await createComment(client, prNumber, commentBody);
   }
 }
@@ -378,8 +378,8 @@ async function getPreviousPRComment(client, prNumber) {
   if (previousComment) {
     const previousSnippetIds = extractCommentMetadata(previousComment.body);
 
-    core.debug(`found previous comment made by pr-commenter: ${previousComment.url}`);
-    core.debug(`extracted snippet ids from previous comment: ${previousSnippetIds.join(', ')}`);
+    core.info(`found previous comment made by pr-commenter: ${previousComment.url}`);
+    core.info(`extracted snippet ids from previous comment: ${previousSnippetIds.join(', ')}`);
 
     return previousComment;
   }
@@ -408,7 +408,7 @@ function getMatchingSnippetIds(changedFiles, commentConfig) {
     return acc;
   }, []);
 
-  core.debug(`matched snippet ids: ${snippetIds}`);
+  core.info(`matched snippet ids: ${snippetIds}`);
 
   return snippetIds;
 }
