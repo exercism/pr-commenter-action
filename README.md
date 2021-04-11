@@ -31,7 +31,7 @@ Create your action configuration file `.github/pr-commenter.yml` as follows.
 comment:
   on-update: recreate
   header: |
-    Thank you for contributing this repository :tada:.
+    Thank you for contributing to this repository :tada:.
 
   footer: |
     ---
@@ -68,7 +68,11 @@ Auth token used to manage issues or pull requests.
 
 #### `comment.on-update`
 
-One of: `recreate`, `edit`, and `nothing`. Dictates what should happen if a comment was already created on this PR, but more changes were pushed to the PR and the comment needs to change. `recreate` means delete the old comment and create a new one, `edit`, means edit the old comment, and `nothing` means leave the old comment unchanged.
+Dictates what should happen if a comment was already created on this PR, but more changes were pushed to the PR and the comment needs to change.
+
+- `recreate` - delete the old comment and create a new one
+- `edit` - edit the old comment
+- `nothing` - leave the old comment unchanged
 
 **Required**: true
 
@@ -110,3 +114,10 @@ The text to be included in the PR comment.
 
 **Required**: true
 
+## Development
+
+### Setup
+
+- Install the required NodeJS version as specified in `.tool-versions`. The recommended way to manage multiple NodeJS versions is to use [asdf](https://asdf-vm.com/#/).
+- Install the dependencies with `npm install`.
+- Run the tests with `npm run test` and the linter with `npm run lint`.
