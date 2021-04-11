@@ -7,7 +7,7 @@ inputs:
     default: ${{ github.token }}
     required: false
   config-file:
-    description: 'The path to the configuration file'
+    description: 'The path to the action configuration file'
     default: '.github/pr-commenter.yml'
     required: false
 runs:
