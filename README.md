@@ -102,15 +102,49 @@ A string consisting of letters, numbers, `-`, and `_`.
 
 **Required**: true
 
-#### `comment.snippets[].files`
-
-A list of glob expressions. If a file matching any of those expressions is being changed in the PR, this snippet's body will be included in the comment.
-
-**Required**: true
-
 #### `comment.snippets[].body`
 
 The text to be included in the PR comment.
+
+**Required**: true
+
+#### `comment.snippets[].files`
+
+A list of globs (strings) and/or match objects. If at least one file changed in the PR matches at least one of the globs or match objects, this snippet's body will be included in the comment.
+
+##### Globs
+
+Example:
+
+```yaml
+# Any markdown file changed in any directory
+comment:
+  snippets:
+    - id: any-markdown-file-changed
+      files:
+        - '*.md'
+        - '**/*.md'
+```
+
+##### Match objects
+
+A match object contains the keys `any` and/or `all` with a list of globs.
+
+- `all` - **every file** changed in this PR must match every glob in this list
+- `any` - **at least one file** changed in this PR must match every glob in this list
+
+Example:
+
+```yaml
+# Any markdown file changed but the root-level README.md
+comment:
+  snippets:
+    - id: any-markdown-file-changed-but-readme
+      files:
+        - any: ['*.md']
+          all: ['!README.md']
+        - '**/*.md'
+```
 
 **Required**: true
 

@@ -35,6 +35,23 @@ describe('getMatchingSnippetIds', () => {
     expect(actualResult).toEqual(expectedResult);
   });
 
+  test('negated pattern - at least one changed file must not match', () => {
+    const config = new Map([
+      ['snippets', [
+        new Map([
+          ['id', 'snippet1'],
+          ['files', ['!**/*.txt']],
+        ]),
+      ]],
+    ]);
+
+    let actualResult = snippets.getMatchingSnippetIds(['foo/bar.txt', 'foo/bar/baz.txt'], config);
+    expect(actualResult).toEqual([]);
+
+    actualResult = snippets.getMatchingSnippetIds(['foo/bar.html', 'foo/bar/baz.txt'], config);
+    expect(actualResult).toEqual(['snippet1']);
+  });
+
   test('single * does not match nested dirs', () => {
     const config = new Map([
       ['snippets', [
@@ -177,5 +194,106 @@ describe('getMatchingSnippetIds', () => {
 
     const actualResult = snippets.getMatchingSnippetIds(changedFiles, config);
     expect(actualResult).toEqual(expectedResult);
+  });
+
+  test('patterns using the "all" option - ALL changed files must match ALL of the patterns', () => {
+    const config = new Map([
+      ['snippets', [
+        new Map([
+          ['id', 'snippet1'],
+          ['files', [{ all: ['**/*.html', 'static/*'] }]],
+        ]),
+      ]],
+    ]);
+
+    expect(snippets.getMatchingSnippetIds(['static/index.html'], config)).toEqual(['snippet1']);
+    expect(snippets.getMatchingSnippetIds(['static/about.html'], config)).toEqual(['snippet1']);
+    expect(snippets.getMatchingSnippetIds(['static/index.html', 'static/about.html'], config)).toEqual(['snippet1']);
+    expect(snippets.getMatchingSnippetIds(['static/index.css'], config)).toEqual([]);
+    expect(snippets.getMatchingSnippetIds(['static/index.html', 'static/about.html', 'static/index.css'], config)).toEqual([]);
+  });
+
+  test('negated pattern using the "all" option - NONE changed files can match', () => {
+    const config = new Map([
+      ['snippets', [
+        new Map([
+          ['id', 'snippet1'],
+          ['files', [{ all: ['!**/*.css'] }]],
+        ]),
+      ]],
+    ]);
+
+    expect(snippets.getMatchingSnippetIds(['static/index.html'], config)).toEqual(['snippet1']);
+    expect(snippets.getMatchingSnippetIds(['static/about.html'], config)).toEqual(['snippet1']);
+    expect(snippets.getMatchingSnippetIds(['static/index.html', 'static/about.html'], config)).toEqual(['snippet1']);
+    expect(snippets.getMatchingSnippetIds(['static/index.css'], config)).toEqual([]);
+    expect(snippets.getMatchingSnippetIds(['static/index.html', 'static/about.html', 'static/index.css'], config)).toEqual([]);
+  });
+
+  test('patterns using the "any" option - ONE of the changed files must match ALL of the patterns', () => {
+    const config = new Map([
+      ['snippets', [
+        new Map([
+          ['id', 'snippet1'],
+          ['files', [{ any: ['**/*.html', 'static/*'] }]],
+        ]),
+      ]],
+    ]);
+
+    expect(snippets.getMatchingSnippetIds(['static/index.html'], config)).toEqual(['snippet1']);
+    expect(snippets.getMatchingSnippetIds(['static/index.css'], config)).toEqual([]);
+    expect(snippets.getMatchingSnippetIds(['lib/index.html'], config)).toEqual([]);
+    expect(snippets.getMatchingSnippetIds(['static/index.html', 'static/index.css'], config)).toEqual(['snippet1']);
+    expect(snippets.getMatchingSnippetIds(['lib/index.html', 'static/index.css'], config)).toEqual([]);
+  });
+
+  test('patterns using both the "all" and "any" option', () => {
+    const config = new Map([
+      ['snippets', [
+        new Map([
+          ['id', 'snippet1'],
+          ['files', [
+            {
+              any: ['**/foo/**/*', '**/index.*'],
+              all: ['**/*.html', 'static/**/*'],
+            },
+          ]],
+        ]),
+      ]],
+    ]);
+
+    expect(snippets.getMatchingSnippetIds(['static/foo/index.html'], config)).toEqual(['snippet1']);
+    expect(snippets.getMatchingSnippetIds(['static/foo/bar/index.html'], config)).toEqual(['snippet1']);
+    expect(snippets.getMatchingSnippetIds(['static/foo/about.html'], config)).toEqual([]);
+    expect(snippets.getMatchingSnippetIds(['static/page.html'], config)).toEqual([]);
+    expect(snippets.getMatchingSnippetIds(['static/foo/index.html', 'static/page.html'], config)).toEqual(['snippet1']);
+  });
+
+  test('patterns using both the "all" and "any" option or a simple matcher', () => {
+    const config = new Map([
+      ['snippets', [
+        new Map([
+          ['id', 'snippet1'],
+          ['files', [
+            'README.md',
+            {
+              any: ['**/foo/**/*', '**/index.*'],
+              all: ['**/*.html', 'static/**/*'],
+            },
+          ]],
+        ]),
+      ]],
+    ]);
+
+    expect(snippets.getMatchingSnippetIds(['static/foo/index.html'], config)).toEqual(['snippet1']);
+    expect(snippets.getMatchingSnippetIds(['static/foo/bar/index.html'], config)).toEqual(['snippet1']);
+    expect(snippets.getMatchingSnippetIds(['static/foo/about.html'], config)).toEqual([]);
+    expect(snippets.getMatchingSnippetIds(['static/page.html'], config)).toEqual([]);
+    expect(snippets.getMatchingSnippetIds(['static/foo/index.html', 'static/page.html'], config)).toEqual(['snippet1']);
+
+    expect(snippets.getMatchingSnippetIds(['README.md'], config)).toEqual(['snippet1']);
+    expect(snippets.getMatchingSnippetIds(['README.html'], config)).toEqual([]);
+    expect(snippets.getMatchingSnippetIds(['static/page.html', 'README.md'], config)).toEqual(['snippet1']);
+    expect(snippets.getMatchingSnippetIds(['static/page.html', 'README.html'], config)).toEqual([]);
   });
 });
