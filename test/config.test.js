@@ -190,7 +190,7 @@ describe('validateCommentConfig', () => {
     expect(() => config.validateCommentConfig(input)).toThrow(/found unexpected value 'whatever' under key '\.comment\.on-update' \(should be one of: recreate, edit, nothing\)/);
   });
 
-  test('glob-options is an optional', () => {
+  test('glob-options is optional', () => {
     const input = {
       comment: {
         'glob-options': {
