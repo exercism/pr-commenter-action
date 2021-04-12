@@ -149,6 +149,19 @@ comment:
 
 **Required**: true
 
+#### `comment.glob-options`
+
+This GitHub action uses the [minimatch](https://github.com/isaacs/minimatch) library for glob matching. A object with options can be provided under `comment.glob-options` to modify the behavior of this library. See [the list of minimatch options](https://github.com/isaacs/minimatch#options) for the list of supported options.
+
+Example:
+
+```yaml
+# Make all globs also match hidden files and directories
+comment:
+  glob-options:
+    dot: true
+```
+
 ## Development
 
 ### Setup

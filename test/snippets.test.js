@@ -84,6 +84,30 @@ describe('getMatchingSnippetIds', () => {
     expect(actualResult).toEqual(expectedResult);
   });
 
+  test('* does not match hidden files by default, unless an option is passed', () => {
+    let config = new Map([
+      ['snippets', [
+        new Map([
+          ['id', 'snippet1'],
+          ['files', ['*.txt']],
+        ]),
+      ]],
+    ]);
+    let changedFiles = ['.hidden.txt'];
+    let expectedResult = [];
+
+    let actualResult = snippets.getMatchingSnippetIds(changedFiles, config);
+    expect(actualResult).toEqual(expectedResult);
+
+    config = config.set('globOptions', { dot: true });
+
+    changedFiles = ['.hidden.txt'];
+    expectedResult = ['snippet1'];
+
+    actualResult = snippets.getMatchingSnippetIds(changedFiles, config);
+    expect(actualResult).toEqual(expectedResult);
+  });
+
   test('a match, many patterns', () => {
     const config = new Map([
       ['snippets', [
@@ -287,6 +311,7 @@ describe('getMatchingSnippetIds', () => {
 
     expect(snippets.getMatchingSnippetIds(['static/foo/index.html'], config)).toEqual(['snippet1']);
     expect(snippets.getMatchingSnippetIds(['static/foo/bar/index.html'], config)).toEqual(['snippet1']);
+    expect(snippets.getMatchingSnippetIds(['static/FOO/bar/index.html'], config)).toEqual([]);
     expect(snippets.getMatchingSnippetIds(['static/foo/about.html'], config)).toEqual([]);
     expect(snippets.getMatchingSnippetIds(['static/page.html'], config)).toEqual([]);
     expect(snippets.getMatchingSnippetIds(['static/foo/index.html', 'static/page.html'], config)).toEqual(['snippet1']);
@@ -295,5 +320,30 @@ describe('getMatchingSnippetIds', () => {
     expect(snippets.getMatchingSnippetIds(['README.html'], config)).toEqual([]);
     expect(snippets.getMatchingSnippetIds(['static/page.html', 'README.md'], config)).toEqual(['snippet1']);
     expect(snippets.getMatchingSnippetIds(['static/page.html', 'README.html'], config)).toEqual([]);
+  });
+
+  test('patterns using the "all" and "any" option can be modified with globOptions', () => {
+    const config = new Map([
+      ['snippets', [
+        new Map([
+          ['id', 'snippet1'],
+          ['files', [
+            {
+              any: ['**/foo/**/*', '**/index.*'],
+              all: ['**/*.html', 'static/**/*'],
+            },
+          ]],
+        ]),
+      ]],
+      ['globOptions', { nocase: true }],
+    ]);
+
+    expect(snippets.getMatchingSnippetIds(['static/foo/bar/index.html'], config)).toEqual(['snippet1']);
+    expect(snippets.getMatchingSnippetIds(['static/FOO/bar/index.html'], config)).toEqual(['snippet1']);
+    expect(snippets.getMatchingSnippetIds(['static/foo/about.html'], config)).toEqual([]);
+    expect(snippets.getMatchingSnippetIds(['static/FOO/about.html'], config)).toEqual([]);
+    expect(snippets.getMatchingSnippetIds(['static/foo/index.html', 'static/page.html'], config)).toEqual(['snippet1']);
+    expect(snippets.getMatchingSnippetIds(['static/FOO/index.html', 'static/page.html'], config)).toEqual(['snippet1']);
+    expect(snippets.getMatchingSnippetIds(['static/FOO/index.html', 'STATIC/page.html'], config)).toEqual(['snippet1']);
   });
 });

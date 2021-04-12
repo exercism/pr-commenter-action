@@ -116,6 +116,10 @@ function validateCommentConfig(configObject) {
     );
   }
 
+  if (configObject.comment['glob-options'] && typeof configObject.comment['glob-options'] === 'object') {
+    configMap.set('globOptions', configObject.comment['glob-options']);
+  }
+
   if (configObject.comment.footer === undefined || configObject.comment.footer === null || typeof configObject.comment.footer === 'string') {
     configMap.set('footer', configObject.comment.footer);
   } else {
@@ -429,7 +433,7 @@ function getMatchingSnippetIds(changedFiles, commentConfig) {
   const snippetIds = commentConfig.get('snippets').reduce((acc, snippet) => {
     core.debug(`processing snippet ${snippet.get('id')}`);
 
-    if (checkGlobs(changedFiles, snippet.get('files'))) {
+    if (checkGlobs(changedFiles, snippet.get('files'), commentConfig.get('globOptions') || {})) {
       return [...acc, snippet.get('id')];
     }
     return acc;
@@ -454,11 +458,11 @@ function printPattern(matcher) {
   return (matcher.negate ? '!' : '') + matcher.pattern;
 }
 
-function checkGlobs(changedFiles, globs) {
+function checkGlobs(changedFiles, globs, opts) {
   for (const glob of globs) {
     core.debug(` checking pattern ${JSON.stringify(glob)}`);
     const matchConfig = toMatchConfig(glob);
-    if (checkMatch(changedFiles, matchConfig)) {
+    if (checkMatch(changedFiles, matchConfig, opts)) {
       return true;
     }
   }
@@ -480,8 +484,8 @@ function isMatch(changedFile, matchers) {
 }
 
 // equivalent to "Array.some()" but expanded for debugging and clarity
-function checkAny(changedFiles, globs) {
-  const matchers = globs.map((g) => new Minimatch(g));
+function checkAny(changedFiles, globs, opts) {
+  const matchers = globs.map((g) => new Minimatch(g, opts));
   core.debug('  checking "any" patterns');
   for (const changedFile of changedFiles) {
     if (isMatch(changedFile, matchers)) {
@@ -495,8 +499,8 @@ function checkAny(changedFiles, globs) {
 }
 
 // equivalent to "Array.every()" but expanded for debugging and clarity
-function checkAll(changedFiles, globs) {
-  const matchers = globs.map((g) => new Minimatch(g));
+function checkAll(changedFiles, globs, opts) {
+  const matchers = globs.map((g) => new Minimatch(g, opts));
   core.debug(' checking "all" patterns');
   for (const changedFile of changedFiles) {
     if (!isMatch(changedFile, matchers)) {
@@ -509,15 +513,15 @@ function checkAll(changedFiles, globs) {
   return true;
 }
 
-function checkMatch(changedFiles, matchConfig) {
+function checkMatch(changedFiles, matchConfig, opts) {
   if (matchConfig.all !== undefined) {
-    if (!checkAll(changedFiles, matchConfig.all)) {
+    if (!checkAll(changedFiles, matchConfig.all, opts)) {
       return false;
     }
   }
 
   if (matchConfig.any !== undefined) {
-    if (!checkAny(changedFiles, matchConfig.any)) {
+    if (!checkAny(changedFiles, matchConfig.any, opts)) {
       return false;
     }
   }

@@ -190,6 +190,31 @@ describe('validateCommentConfig', () => {
     expect(() => config.validateCommentConfig(input)).toThrow(/found unexpected value 'whatever' under key '\.comment\.on-update' \(should be one of: recreate, edit, nothing\)/);
   });
 
+  test('glob-options is optional', () => {
+    const input = {
+      comment: {
+        'glob-options': {
+          dot: true,
+          noglobstar: true,
+        },
+        snippets: [snippet1Object],
+      },
+    };
+
+    const output = new Map([
+      ['onUpdate', 'recreate'],
+      ['header', undefined],
+      ['footer', undefined],
+      ['globOptions', {
+        dot: true,
+        noglobstar: true,
+      }],
+      ['snippets', [snippet1Map]],
+    ]);
+
+    expect(config.validateCommentConfig(input)).toEqual(output);
+  });
+
   test('snippets is required', () => {
     const input = {
       comment: {},
