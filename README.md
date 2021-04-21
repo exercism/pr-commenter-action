@@ -169,3 +169,7 @@ comment:
 - Install the required NodeJS version as specified in `.tool-versions`. The recommended way to manage multiple NodeJS versions is to use [asdf](https://asdf-vm.com/#/).
 - Install the dependencies with `npm install`.
 - Run the tests with `npm run test` and the linter with `npm run lint`.
+
+## Authors
+
+This library was originally created by [@angelikatyborska](https://github.com/angelikatyborska/). It is maintained by [@angelikatyborska](https://github.com/angelikatyborska/) and the Exercism team. See the [GitHub contributors graph](https://github.com/exercism/pr-commenter-action/graphs/contributors) for a full list of contributors.
