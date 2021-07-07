@@ -109,6 +109,24 @@ The text to be included in the PR comment.
 
 **Required**: true
 
+##### Templates
+
+Comment snippet bodies (as well as `comment.header` and `comment.footer`) are [Mustache][https://mustache.github.io/mustache.5.html] templates.
+
+Variables available in the template are:
+- `pr` - the whole response of a [`GET /repos/{owner}/{repo}/pulls/{pull_number}` request](https://docs.github.com/en/rest/reference/pulls#get-a-pull-request).
+- `exec` - the object returned by this comment snippet's exec function (`comment.snippets[].exec`), if any. Not available for the header and footer.
+
+Note that values such as `pr.body`, `pr.title`, or `pr.head.ref` should be considered [unsafe user input](https://docs.github.com/en/actions/learn-github-actions/security-hardening-for-github-actions#understanding-the-risk-of-script-injections).
+
+###### Example
+
+```yaml
+comment:
+  header: |
+    Hi {{ pr.user.login }}! Thank you for your contribution.
+```
+
 #### `comment.snippets[].files`
 
 A list of globs (strings) and/or match objects. If at least one file changed in the PR matches at least one of the globs or match objects, this snippet's body will be included in the comment.
@@ -160,6 +178,52 @@ Example:
 comment:
   glob-options:
     dot: true
+```
+
+#### `comment.snippets[].exec`
+
+A path to a JavaScript file defining a function called `exec`.
+
+**Required**: false
+
+It can be used as a way to provide additional variables to the comment snippet body template, or to exclude the comment snippet from the comment even when the globs matched some of the files changed in the PR. 
+
+This function will receive as arguments:
+
+- `changedFiles` - a list of file paths that matched this comment snippet's globs (`comment.snippets[].files`).
+- `pr` - the whole response of a [`GET /repos/{owner}/{repo}/pulls/{pull_number}` request](https://docs.github.com/en/rest/reference/pulls#get-a-pull-request).
+
+Note that values such as `pr.body`, `pr.title`, or `pr.head.ref` should be considered [unsafe user input](https://docs.github.com/en/actions/learn-github-actions/security-hardening-for-github-actions#understanding-the-risk-of-script-injections).
+
+It should return one of:
+- `false` if the comment snippet should be excluded from the comment.
+- `true` if the comment snippet should be included included in the comment.
+- an object with additional variables for the comment body template if needed.
+
+The script runs in a limited context, e.g. you cannot call `require` or `process`.
+
+`fs.readFileSync` is available as `readFileSync` so that you can inspect the current contents of all the files in the repository.
+
+##### Example
+
+```yaml
+comment:
+  snippets:
+    - id: any-src-js-changed
+      files:
+        - 'src/**/*.js'
+      body: |
+        Please add yourself to CONTRIBUTORS.md :)
+      exec: .github/bin/pr-commenter/check-if-pr-author-is-not-yet-a-contributor.js
+```
+
+```js
+// .github/bin/pr-commenter/check-if-pr-author-is-not-yet-a-contributor.js
+function exec(changedFiles, pr) {
+  const prAuthor = pr.user.login
+  const contributors = readFileSync('CONTRIBUTORS.md').toString()
+  return contributors.indexOf(prAuthor) === -1
+}
 ```
 
 ## Development
