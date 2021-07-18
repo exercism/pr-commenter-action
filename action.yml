@@ -10,6 +10,9 @@ inputs:
     description: 'The path to the action configuration file'
     default: '.github/pr-commenter.yml'
     required: false
+  template-variables:
+    description: 'A string with a JSON that holds variables that will be used when rendering the Mustache templates'
+    required: false
 runs:
   using: 'node12'
   main: 'dist/index.js'

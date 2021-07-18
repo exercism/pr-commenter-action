@@ -22,7 +22,7 @@ describe('run', () => {
     const fakeConfigPath = 'foo/config-file.yml';
     const fakeConfig = 'comment:\n'
       + '  on-update: recreate\n'
-      + '  header: Hello!\n'
+      + '  header: Hello {{name}}!\n'
       + '  footer: Bye!\n'
       + '  snippets:\n'
       + '    - id: snippet1\n'
@@ -49,6 +49,10 @@ describe('run', () => {
         return 'foo/config-file.yml';
       }
 
+      if (argument === 'template-variables') {
+        return '{"name": "Bob"}';
+      }
+
       return null;
     });
 
@@ -66,7 +70,7 @@ describe('run', () => {
       { user: { type: 'Bot' }, created_at: '2020-01-01' },
     ];
 
-    const commentBody = `${'Hello!\n\n'
+    const commentBody = `${'Hello Bob!\n\n'
       + 'This is snippet 1\n\n'
     + 'This is snippet 3\n\n'
     + 'Bye!\n\n'}${
