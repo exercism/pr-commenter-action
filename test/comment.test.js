@@ -104,6 +104,33 @@ describe('comment', () => {
         + '<!-- pr-commenter-metadata: snippet1,snippet2 -->',
       );
     });
+
+    test('supports Mustache templates', () => {
+      const commentConfig = new Map([
+        ['header', 'hello {{user.firstName}}'],
+        ['footer', 'bye {{user.firstName}}'],
+        ['snippets', [
+          new Map([
+            ['id', 'snippet1'],
+            ['body', 'A list:\n- one\n- two\n{{#shouldIncludeThirdItem}}- three\n{{/shouldIncludeThirdItem}}'],
+          ]),
+        ]],
+      ]);
+
+      const templateVariables = {
+        user: {
+          firstName: 'Alice',
+        },
+        shouldIncludeThirdItem: false,
+      };
+
+      expect(comment.assembleCommentBody(['snippet1'], commentConfig, templateVariables)).toEqual(
+        'hello Alice\n\n'
+        + 'A list:\n- one\n- two\n\n'
+        + 'bye Alice\n\n'
+        + '<!-- pr-commenter-metadata: snippet1 -->',
+      );
+    });
   });
 
   describe('extractCommentMetadata', () => {
