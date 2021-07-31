@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add support for Mustache templates in comments.
+
 ## 1.1.0 (2021-04-12)
 
 - Add a new config option `.comment.glob-options` which forwards options to the glob matching library. This allows for example to turn off case-sensitivity of the globs or also match hidden files and directories with `**`. 

@@ -109,6 +109,49 @@ The text to be included in the PR comment.
 
 **Required**: true
 
+##### Templates
+
+Comment snippet bodies (as well as `comment.header` and `comment.footer`) are [Mustache][https://mustache.github.io/mustache.5.html] templates.
+
+Variables for the template can be provided via the `template-variables` input which should be a string containing a valid JSON.
+
+You can use the [context and expression syntax](https://docs.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions) to assemble the JSON and [set-output](https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-an-output-parameter) to calculate data for the template in separate steps.
+
+###### Example
+
+```yaml
+name: "PR Commenter"
+on:
+  - pull_request_target
+
+jobs:
+  pr-comment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Calculate some template variables
+        id: vars
+        run: |
+          echo ::set-output name=today::"$(date +%d-%m-%Y)"
+
+      - uses: exercism/pr-commenter-action@v1.1.0
+        with:
+          template-variables: |
+            {
+              "today": "${{ steps.vars.outputs.today }}",
+              "prAuthor": "${{ github.event.pull_request.user.login }}",
+              "branchNamePrefix": ${{ startsWith(github.event.pull_request.head.ref, 'ref-') }}
+            }
+```
+```yaml
+comment:
+  header: |
+    Hi {{ prAuthor }}! Thank you for your contribution.
+
+    {{^branchNamePrefix}}Your branch name doesn't start with the required prefix 'ref-'.{{/branchNamePrefix}}
+```
+
+Note that values such as the PR's title, body, or branch name should be considered [unsafe user input](https://docs.github.com/en/actions/learn-github-actions/security-hardening-for-github-actions#understanding-the-risk-of-script-injections).
+
 #### `comment.snippets[].files`
 
 A list of globs (strings) and/or match objects. If at least one file changed in the PR matches at least one of the globs or match objects, this snippet's body will be included in the comment.
