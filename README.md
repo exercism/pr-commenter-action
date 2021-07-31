@@ -111,7 +111,7 @@ The text to be included in the PR comment.
 
 ##### Templates
 
-Comment snippet bodies (as well as `comment.header` and `comment.footer`) are [Mustache][https://mustache.github.io/mustache.5.html] templates.
+Comment snippet bodies (as well as `comment.header` and `comment.footer`) are [Mustache](https://mustache.github.io/mustache.5.html) templates.
 
 Variables for the template can be provided via the `template-variables` input which should be a string containing a valid JSON.
 
