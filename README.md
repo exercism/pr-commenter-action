@@ -99,7 +99,9 @@ A list of comment snippet configurations. At least one snippet is required. Note
 
 #### `comment.snippets[].id`
 
-A string consisting of letters, numbers, `-`, and `_`.
+A string consisting of letters, numbers, `-`, and `_` or a Mustache template that evaluates to such a string.
+
+_Snippet ids are used to check whether a comment's content changed. If you're using a template variable in the snippets's body and you want to recreate the whole comment when that variable changes value, use it in the snippet's id too._ 
 
 **Required**: true
 

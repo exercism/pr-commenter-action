@@ -274,6 +274,55 @@ describe('validateCommentConfig', () => {
     expect(() => config.validateCommentConfig(input)).toThrow(/found invalid snippet id 'can this have spaces\?' \(snippet ids must contain only letters, numbers, dashes, and underscores\)/);
   });
 
+  test('snippet id can be a mustache template', () => {
+    const input = {
+      comment: {
+        snippets: [
+          {
+            id: 'snippet-{{ date }}',
+            body: 'something something...',
+            files: ['foo.txt'],
+          },
+        ],
+      },
+    };
+
+    const templateVariables = { date: '2021-08-27' };
+
+    const snippets = [new Map([
+      ['id', 'snippet-2021-08-27'],
+      ['body', 'something something...'],
+      ['files', ['foo.txt']],
+    ])];
+
+    const expected = new Map([
+      ['footer', undefined],
+      ['header', undefined],
+      ['onUpdate', 'recreate'],
+      ['snippets', snippets],
+    ]);
+
+    expect(config.validateCommentConfig(input, templateVariables)).toEqual(expected);
+  });
+
+  test('snippet id can only contain letters, numbers, a dash, and an underscore after rendering the mustache template', () => {
+    const input = {
+      comment: {
+        snippets: [
+          {
+            id: 'snippet-{{ date }}',
+            body: '',
+            files: ['foo.txt'],
+          },
+        ],
+      },
+    };
+
+    const templateVariables = { date: '2021 08 27' };
+
+    expect(() => config.validateCommentConfig(input, templateVariables)).toThrow(/found invalid snippet id 'snippet-2021 08 27' \(snippet ids must contain only letters, numbers, dashes, and underscores\)/);
+  });
+
   test('error message uses the correct snippet index', () => {
     const input = {
       comment: {
@@ -418,5 +467,28 @@ describe('validateCommentConfig', () => {
     };
 
     expect(() => config.validateCommentConfig(input)).toThrow(/found duplicate snippet id 'foo'/);
+  });
+
+  test('snippet ids must be unique after mustache templates are rendered', () => {
+    const input = {
+      comment: {
+        snippets: [
+          {
+            id: 'snippet-{{ number }}',
+            body: '',
+            files: ['foo.txt'],
+          },
+          {
+            id: 'snippet-{{ id }}',
+            body: '',
+            files: ['foo.txt'],
+          },
+        ],
+      },
+    };
+
+    const variableTemplates = { number: 5, id: 5 };
+
+    expect(() => config.validateCommentConfig(input, variableTemplates)).toThrow(/found duplicate snippet id 'snippet-5'/);
   });
 });

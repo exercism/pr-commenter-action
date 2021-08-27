@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add support for Mustache templates in snippet ids. This allows more control over when a comment will be recreated. 
+
 ## 1.2.0 (2021-07-31)
 
 - Add support for Mustache templates in comments.
