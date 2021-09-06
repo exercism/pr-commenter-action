@@ -51,7 +51,7 @@ comment:
 
 ### Workflow inputs
 
-#### `repo-token`
+#### `github-token`
 
 Auth token used to manage issues or pull requests.
 
