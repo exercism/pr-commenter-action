@@ -423,10 +423,11 @@ async function getCommentConfig(client, configurationPath, templateVariables) {
 
 async function getPreviousPRComment(client, prNumber) {
   const comments = await getComments(client, prNumber);
+  core.debug(`there are ${comments.length} comments on the PR #${prNumber}`);
 
   const newestFirst = (c1, c2) => c2.created_at.localeCompare(c1.created_at);
-  const botComments = comments.filter((c) => c.user.type === 'Bot').sort(newestFirst);
-  const previousComment = botComments.find((c) => extractCommentMetadata(c.body) !== null);
+  const sortedComments = comments.sort(newestFirst);
+  const previousComment = sortedComments.find((c) => extractCommentMetadata(c.body) !== null);
 
   if (previousComment) {
     const previousSnippetIds = extractCommentMetadata(previousComment.body);

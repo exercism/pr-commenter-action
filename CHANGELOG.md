@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.3.0 (2021-09-12)
+
 - Add support for Mustache templates in snippet ids. This allows more control over when a comment will be recreated. 
 - When looking for a previous comment made by this action, do not filter out non-bot users. This allows the action to correctly update or recreate comments when used with a token belonging to a real user.
 
