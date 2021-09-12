@@ -90,9 +90,11 @@ module.exports = {
 /***/ }),
 
 /***/ 88:
-/***/ ((module) => {
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-function validateCommentConfig(configObject) {
+const Mustache = __nccwpck_require__(8272);
+
+function validateCommentConfig(configObject, templateVariables) {
   const configMap = new Map();
 
   if (typeof configObject.comment !== 'object') {
@@ -137,12 +139,13 @@ function validateCommentConfig(configObject) {
       const snippetMap = new Map();
 
       if (typeof snippetObject.id === 'string') {
+        const id = Mustache.render(snippetObject.id, templateVariables);
         const regex = /^[A-Za-z0-9\-_,]*$/;
-        if (regex.exec(snippetObject.id)) {
-          snippetMap.set('id', snippetObject.id);
+        if (regex.exec(id)) {
+          snippetMap.set('id', id);
         } else {
           throw Error(
-            `found invalid snippet id '${snippetObject.id}' (snippet ids must contain only letters, numbers, dashes, and underscores)`,
+            `found invalid snippet id '${id}' (snippet ids must contain only letters, numbers, dashes, and underscores)`,
           );
         }
       } else {
@@ -363,9 +366,6 @@ async function run() {
 
   core.debug(`fetching changed files for pr #${prNumber}`);
   const changedFiles = await getChangedFiles(client, prNumber);
-  const commentConfig = await getCommentConfig(client, configPath);
-
-  const snippetIds = getMatchingSnippetIds(changedFiles, commentConfig);
   const previousComment = await getPreviousPRComment(client, prNumber);
 
   let templateVariables = {};
@@ -381,6 +381,9 @@ async function run() {
   } else {
     core.debug('Input template-variables was not passed');
   }
+
+  const commentConfig = await getCommentConfig(client, configPath, templateVariables);
+  const snippetIds = getMatchingSnippetIds(changedFiles, commentConfig);
 
   if (shouldDeletePreviousComment(previousComment, snippetIds, commentConfig)) {
     core.info('removing previous comment');
@@ -409,12 +412,12 @@ function getPrNumber() {
   return pullRequest.number;
 }
 
-async function getCommentConfig(client, configurationPath) {
+async function getCommentConfig(client, configurationPath, templateVariables) {
   const configurationContent = await getFileContent(client, configurationPath);
   const configObject = yaml.load(configurationContent);
 
   // transform object to a map or throw if yaml is malformed:
-  const configMap = validateCommentConfig(configObject);
+  const configMap = validateCommentConfig(configObject, templateVariables);
   return configMap;
 }
 

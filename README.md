@@ -99,7 +99,9 @@ A list of comment snippet configurations. At least one snippet is required. Note
 
 #### `comment.snippets[].id`
 
-A string consisting of letters, numbers, `-`, and `_`.
+A string consisting of letters, numbers, `-`, and `_` or a Mustache template that evaluates to such a string.
+
+_Snippet ids are used to check whether a comment's content changed. If you're using a template variable in the snippets's body and you want to recreate the whole comment when that variable changes value, use it in the snippet's id too._ 
 
 **Required**: true
 
@@ -117,7 +119,7 @@ Variables for the template can be provided via the `template-variables` input wh
 
 You can use the [context and expression syntax](https://docs.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions) to assemble the JSON and [set-output](https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-an-output-parameter) to calculate data for the template in separate steps.
 
-###### Example
+###### Example 1
 
 ```yaml
 name: "PR Commenter"
@@ -151,6 +153,49 @@ comment:
 ```
 
 Note that values such as the PR's title, body, or branch name should be considered [unsafe user input](https://docs.github.com/en/actions/learn-github-actions/security-hardening-for-github-actions#understanding-the-risk-of-script-injections).
+
+###### Example 2
+
+Here's a more complex example of using template variables. Let's say you have a multiline file that changes often, and you want to always include the newest content of the file in the snippet.
+
+To ensure the comment will be recreated when the file changes, use the file's hash in the snippet's id.
+
+To ensure that newline characters are handled correctly, use environment variables instead of job outputs and `toJSON`.
+
+```yaml
+name: "PR Commenter"
+on:
+  - pull_request_target
+
+jobs:
+  pr-comment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set environment variables
+        run: |
+          IMPORTANT_FILE_CONTENT=$(cat important_file)
+          echo "IMPORTANT_FILE_CONTENT<<EOF" >> $GITHUB_ENV
+          echo "$IMPORTANT_FILE_CONTENT" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - uses: exercism/pr-commenter-action@v1.1.0
+        with:
+          template-variables: |
+            {
+              "importantFileContent": ${{ toJSON(env.IMPORTANT_FILE_CONTENT) }},
+              "importnatFileHash": ${{ toJSON(hashFiles('important_file.txt')) }}
+            }
+```
+```yaml
+comment:
+  snippets:
+    - id: snippet_{{ importnatFileHash }}}
+    - files:
+      - 'important_file.txt'
+    - body: |
+        This is very important:
+        {{ importantFileContent }}
+```
 
 #### `comment.snippets[].files`
 
