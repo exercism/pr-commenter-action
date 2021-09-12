@@ -57,17 +57,15 @@ describe('run', () => {
     });
 
     const previousComment = {
-      user: { type: 'Bot' },
       created_at: '2020-01-03',
       body: comment.commentMetadata(['snippet3']),
       url: 'previous-comment-url',
     };
 
     const existingPRComments = [
-      { user: { type: 'user' } },
-      { user: { type: 'Bot' }, created_at: '2020-01-02' },
+      { created_at: '2020-01-02' },
       previousComment,
-      { user: { type: 'Bot' }, created_at: '2020-01-01' },
+      { created_at: '2020-01-01' },
     ];
 
     const commentBody = `${'Hello Bob!\n\n'
