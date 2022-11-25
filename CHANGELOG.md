@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.3.1 (2022-11-25)
+
+- Bump Node version to 16.
+
 ## 1.3.0 (2021-09-12)
 
 - Add support for Mustache templates in snippet ids. This allows more control over when a comment will be recreated. 
