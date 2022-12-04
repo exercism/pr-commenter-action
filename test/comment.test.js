@@ -189,7 +189,7 @@ describe('comment', () => {
       const previousComment = undefined;
       const snippetIds = [];
 
-      let commentConfig = new Map([['onUpdate', 'recreate']]);
+      let commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'recreate']]);
 
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
@@ -198,7 +198,7 @@ describe('comment', () => {
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
 
-      commentConfig = new Map([['onUpdate', 'edit']]);
+      commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'edit']]);
 
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
@@ -207,7 +207,16 @@ describe('comment', () => {
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
 
-      commentConfig = new Map([['onUpdate', 'nothing']]);
+      commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'nothing']]);
+
+      expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+      expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+      expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+
+      commentConfig = new Map([['onCreate', 'nothing'], ['onUpdate', 'nothing']]);
 
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
@@ -221,7 +230,7 @@ describe('comment', () => {
       const previousComment = undefined;
       const snippetIds = ['snippet1', 'snippet2'];
 
-      let commentConfig = new Map([['onUpdate', 'recreate']]);
+      let commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'recreate']]);
 
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(true);
@@ -230,7 +239,7 @@ describe('comment', () => {
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
 
-      commentConfig = new Map([['onUpdate', 'edit']]);
+      commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'edit']]);
 
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(true);
@@ -239,10 +248,19 @@ describe('comment', () => {
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
 
-      commentConfig = new Map([['onUpdate', 'nothing']]);
+      commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'nothing']]);
 
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(true);
+      expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+      expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+
+      commentConfig = new Map([['onCreate', 'nothing'], ['onUpdate', 'nothing']]);
+
+      expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
       expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
@@ -253,7 +271,7 @@ describe('comment', () => {
       const previousComment = { body: comment.commentMetadata(['snippet1', 'snippet2']) };
       const snippetIds = ['snippet1', 'snippet2'];
 
-      let commentConfig = new Map([['onUpdate', 'recreate']]);
+      let commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'recreate']]);
 
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
@@ -262,7 +280,7 @@ describe('comment', () => {
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
 
-      commentConfig = new Map([['onUpdate', 'edit']]);
+      commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'edit']]);
 
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
@@ -271,7 +289,16 @@ describe('comment', () => {
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
 
-      commentConfig = new Map([['onUpdate', 'nothing']]);
+      commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'nothing']]);
+
+      expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+      expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+      expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+
+      commentConfig = new Map([['onCreate', 'nothing'], ['onUpdate', 'recreate']]);
 
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
@@ -285,7 +312,7 @@ describe('comment', () => {
       const previousComment = { body: comment.commentMetadata(['snippet2']) };
       const snippetIds = ['snippet1', 'snippet2'];
 
-      let commentConfig = new Map([['onUpdate', 'recreate']]);
+      let commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'recreate']]);
 
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(true);
@@ -294,7 +321,7 @@ describe('comment', () => {
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
 
-      commentConfig = new Map([['onUpdate', 'edit']]);
+      commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'edit']]);
 
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
@@ -303,12 +330,21 @@ describe('comment', () => {
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(true);
 
-      commentConfig = new Map([['onUpdate', 'nothing']]);
+      commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'nothing']]);
 
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
       expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+
+      commentConfig = new Map([['onCreate', 'nothing'], ['onUpdate', 'recreate']]);
+
+      expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
+        .toEqual(true);
+      expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(true);
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
     });
@@ -317,7 +353,7 @@ describe('comment', () => {
       const previousComment = { body: comment.commentMetadata(['snippet2']) };
       const snippetIds = [];
 
-      let commentConfig = new Map([['onUpdate', 'recreate']]);
+      let commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'recreate']]);
 
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
@@ -326,7 +362,7 @@ describe('comment', () => {
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
 
-      commentConfig = new Map([['onUpdate', 'edit']]);
+      commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'edit']]);
 
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
@@ -335,12 +371,21 @@ describe('comment', () => {
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
 
-      commentConfig = new Map([['onUpdate', 'nothing']]);
+      commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'nothing']]);
 
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
       expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+
+      commentConfig = new Map([['onCreate', 'nothing'], ['onUpdate', 'edit']]);
+
+      expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
+        .toEqual(false);
+      expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
+        .toEqual(true);
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
     });
