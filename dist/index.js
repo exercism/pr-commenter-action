@@ -53,13 +53,13 @@ function newCommentWouldHaveContent(snippetIds) {
 }
 
 function shouldPostNewComment(previousComment, snippetIds, commentConfig) {
-  return newCommentWouldHaveContent(snippetIds) && (
-    !previousComment || (
-      !!previousComment
-      && commentConfig.get('onUpdate') === 'recreate'
-      && newCommentDifferentThanPreviousComment(previousComment, snippetIds)
-    )
-  );
+  const isNotEmpty = newCommentWouldHaveContent(snippetIds);
+  const isCreating = !previousComment && commentConfig.get('onCreate') === 'create';
+  const isUpdating = !!previousComment
+    && commentConfig.get('onUpdate') === 'recreate'
+    && newCommentDifferentThanPreviousComment(previousComment, snippetIds);
+
+  return isNotEmpty && (isCreating || isUpdating);
 }
 
 function shouldDeletePreviousComment(previousComment, snippetIds, commentConfig) {
@@ -111,14 +111,41 @@ function validateCommentConfig(configObject, templateVariables) {
     );
   }
 
+  const allowedOnCreateValues = ['create', 'nothing'];
+  if (configObject.comment['on-create'] === undefined || configObject.comment['on-create'] === null) {
+    configMap.set('onCreate', allowedOnCreateValues[0]);
+  } else if (typeof configObject.comment['on-create'] === 'string') {
+    const onCreate = Mustache.render(configObject.comment['on-create'], templateVariables);
+
+    if (allowedOnCreateValues.includes(onCreate)) {
+      configMap.set('onCreate', onCreate);
+    } else {
+      throw Error(
+        `found unexpected value '${onCreate}' under key '.comment.on-create' (should be one of: ${allowedOnCreateValues.join(', ')})`,
+      );
+    }
+  } else {
+    throw Error(
+      `found unexpected value type '${typeof configObject.comment['on-create']}' under key '.comment.on-create' (should be a string)`,
+    );
+  }
+
   const allowedOnUpdateValues = ['recreate', 'edit', 'nothing'];
   if (configObject.comment['on-update'] === undefined || configObject.comment['on-update'] === null) {
     configMap.set('onUpdate', allowedOnUpdateValues[0]);
-  } else if (allowedOnUpdateValues.includes(configObject.comment['on-update'])) {
-    configMap.set('onUpdate', configObject.comment['on-update']);
+  } else if (typeof configObject.comment['on-update'] === 'string') {
+    const onUpdate = Mustache.render(configObject.comment['on-update'], templateVariables);
+
+    if (allowedOnUpdateValues.includes(onUpdate)) {
+      configMap.set('onUpdate', onUpdate);
+    } else {
+      throw Error(
+        `found unexpected value '${onUpdate}' under key '.comment.on-update' (should be one of: ${allowedOnUpdateValues.join(', ')})`,
+      );
+    }
   } else {
     throw Error(
-      `found unexpected value '${configObject.comment['on-update']}' under key '.comment.on-update' (should be one of: ${allowedOnUpdateValues.join(', ')})`,
+      `found unexpected value type '${typeof configObject.comment['on-update']}' under key '.comment.on-update' (should be a string)`,
     );
   }
 
