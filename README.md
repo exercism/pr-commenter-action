@@ -79,6 +79,17 @@ Dictates what should happen if a comment was already created on this PR, but mor
 
 **Default**: `recreate`
 
+#### `comment.on-create`
+
+Dictates what should happen if there is no comment on this PR yet. For almost all use cases, you want to keep the default behavior. The custom `nothing` option makes sense if you're using this action twice on the same PR, and you want the second execution not to create a new comment, but only edit it if it already exists from the first execution.
+
+- `create` - create a new comment
+- `nothing` - do not create a new comment
+
+**Required**: false
+
+**Default**: `create`
+
 #### `comment.header`
 
 An optional text to be included at the beginning of each comment. 
