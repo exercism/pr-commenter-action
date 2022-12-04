@@ -83,6 +83,7 @@ describe('validateCommentConfig', () => {
   test('valid config', () => {
     const input = {
       comment: {
+        'on-create': 'nothing',
         'on-update': 'nothing',
         header: 'hello',
         footer: 'bye',
@@ -91,6 +92,7 @@ describe('validateCommentConfig', () => {
     };
 
     const output = new Map([
+      ['onCreate', 'nothing'],
       ['onUpdate', 'nothing'],
       ['header', 'hello'],
       ['footer', 'bye'],
@@ -113,10 +115,32 @@ describe('validateCommentConfig', () => {
     };
 
     const output = new Map([
+      ['onCreate', 'create'],
       ['onUpdate', 'nothing'],
       ['header', 'hello'],
       ['footer', 'bye'],
       ['snippets', [snippet1Map, snippet2Map]],
+    ]);
+
+    expect(config.validateCommentConfig(input)).toEqual(output);
+  });
+
+  test('on-create can be missing', () => {
+    const input = {
+      comment: {
+        'on-update': 'edit',
+        header: 'hi',
+        footer: 'bye',
+        snippets: [snippet2Object],
+      },
+    };
+
+    const output = new Map([
+      ['onCreate', 'create'],
+      ['onUpdate', 'edit'],
+      ['header', 'hi'],
+      ['footer', 'bye'],
+      ['snippets', [snippet2Map]],
     ]);
 
     expect(config.validateCommentConfig(input)).toEqual(output);
@@ -132,6 +156,7 @@ describe('validateCommentConfig', () => {
     };
 
     const output = new Map([
+      ['onCreate', 'create'],
       ['onUpdate', 'edit'],
       ['header', undefined],
       ['footer', 'bye'],
@@ -151,6 +176,7 @@ describe('validateCommentConfig', () => {
     };
 
     const output = new Map([
+      ['onCreate', 'create'],
       ['onUpdate', 'edit'],
       ['header', 'hello'],
       ['footer', undefined],
@@ -190,6 +216,16 @@ describe('validateCommentConfig', () => {
     expect(() => config.validateCommentConfig(input)).toThrow(/found unexpected value 'whatever' under key '\.comment\.on-update' \(should be one of: recreate, edit, nothing\)/);
   });
 
+  test('on-create must be one of known values', () => {
+    const input = {
+      comment: {
+        'on-create': 'sup',
+      },
+    };
+
+    expect(() => config.validateCommentConfig(input)).toThrow(/found unexpected value 'sup' under key '\.comment\.on-create' \(should be one of: create, nothing\)/);
+  });
+
   test('glob-options is optional', () => {
     const input = {
       comment: {
@@ -202,6 +238,7 @@ describe('validateCommentConfig', () => {
     };
 
     const output = new Map([
+      ['onCreate', 'create'],
       ['onUpdate', 'recreate'],
       ['header', undefined],
       ['footer', undefined],
@@ -298,6 +335,7 @@ describe('validateCommentConfig', () => {
     const expected = new Map([
       ['footer', undefined],
       ['header', undefined],
+      ['onCreate', 'create'],
       ['onUpdate', 'recreate'],
       ['snippets', snippets],
     ]);
