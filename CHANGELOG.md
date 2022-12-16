@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.4.0 (2022-12-16)
+
 - Add a new config option `.comment.on-create`.
 - Add support for Mustache templates in the config option `.comment.on-update`.
 
