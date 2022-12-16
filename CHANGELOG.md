@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add a new config option `.comment.on-create`.
+- Add support for Mustache templates in the config option `.comment.on-update`.
+
 ## 1.3.1 (2022-11-25)
 
 - Bump Node version to 16.

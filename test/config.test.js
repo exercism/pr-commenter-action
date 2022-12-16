@@ -83,6 +83,7 @@ describe('validateCommentConfig', () => {
   test('valid config', () => {
     const input = {
       comment: {
+        'on-create': 'nothing',
         'on-update': 'nothing',
         header: 'hello',
         footer: 'bye',
@@ -91,6 +92,7 @@ describe('validateCommentConfig', () => {
     };
 
     const output = new Map([
+      ['onCreate', 'nothing'],
       ['onUpdate', 'nothing'],
       ['header', 'hello'],
       ['footer', 'bye'],
@@ -113,10 +115,32 @@ describe('validateCommentConfig', () => {
     };
 
     const output = new Map([
+      ['onCreate', 'create'],
       ['onUpdate', 'nothing'],
       ['header', 'hello'],
       ['footer', 'bye'],
       ['snippets', [snippet1Map, snippet2Map]],
+    ]);
+
+    expect(config.validateCommentConfig(input)).toEqual(output);
+  });
+
+  test('on-create can be missing', () => {
+    const input = {
+      comment: {
+        'on-update': 'edit',
+        header: 'hi',
+        footer: 'bye',
+        snippets: [snippet2Object],
+      },
+    };
+
+    const output = new Map([
+      ['onCreate', 'create'],
+      ['onUpdate', 'edit'],
+      ['header', 'hi'],
+      ['footer', 'bye'],
+      ['snippets', [snippet2Map]],
     ]);
 
     expect(config.validateCommentConfig(input)).toEqual(output);
@@ -132,6 +156,7 @@ describe('validateCommentConfig', () => {
     };
 
     const output = new Map([
+      ['onCreate', 'create'],
       ['onUpdate', 'edit'],
       ['header', undefined],
       ['footer', 'bye'],
@@ -151,6 +176,7 @@ describe('validateCommentConfig', () => {
     };
 
     const output = new Map([
+      ['onCreate', 'create'],
       ['onUpdate', 'edit'],
       ['header', 'hello'],
       ['footer', undefined],
@@ -180,6 +206,61 @@ describe('validateCommentConfig', () => {
     expect(() => config.validateCommentConfig(input)).toThrow(/found unexpected value type 'number' under key '\.comment\.footer' \(should be a string\)/);
   });
 
+  test('on-create must be one of known values', () => {
+    const input = {
+      comment: {
+        'on-create': 'sup',
+      },
+    };
+
+    expect(() => config.validateCommentConfig(input)).toThrow(/found unexpected value 'sup' under key '\.comment\.on-create' \(should be one of: create, nothing\)/);
+  });
+
+  test('on-create must be one a string', () => {
+    const input = {
+      comment: {
+        'on-create': [],
+      },
+    };
+
+    expect(() => config.validateCommentConfig(input)).toThrow(/found unexpected value type 'object' under key '\.comment\.on-create' \(should be a string\)/);
+  });
+
+  test('on-create can be a mustache template', () => {
+    const input = {
+      comment: {
+        'on-create': '{{ onCreate }}',
+        header: 'hi',
+        footer: 'bye',
+        snippets: [snippet2Object],
+      },
+    };
+
+    const templateVariables = { onCreate: 'nothing' };
+
+    const output = new Map([
+      ['onCreate', 'nothing'],
+      ['onUpdate', 'recreate'],
+      ['header', 'hi'],
+      ['footer', 'bye'],
+      ['snippets', [snippet2Map]],
+    ]);
+
+    expect(config.validateCommentConfig(input, templateVariables)).toEqual(output);
+  });
+
+  test('on-create must be one of known values after rendering the mustache template', () => {
+    const input = {
+      comment: {
+        'on-create': '{{ onCreate }}',
+      },
+    };
+
+    const templateVariables = { onCreate: '1234' };
+
+    expect(() => config.validateCommentConfig(input, templateVariables)).toThrow(/found unexpected value '1234' under key '\.comment\.on-create' \(should be one of: create, nothing\)/);
+  });
+
   test('on-update must be one of known values', () => {
     const input = {
       comment: {
@@ -188,6 +269,51 @@ describe('validateCommentConfig', () => {
     };
 
     expect(() => config.validateCommentConfig(input)).toThrow(/found unexpected value 'whatever' under key '\.comment\.on-update' \(should be one of: recreate, edit, nothing\)/);
+  });
+
+  test('on-update must be one a string', () => {
+    const input = {
+      comment: {
+        'on-update': 123,
+      },
+    };
+
+    expect(() => config.validateCommentConfig(input)).toThrow(/found unexpected value type 'number' under key '\.comment\.on-update' \(should be a string\)/);
+  });
+
+  test('on-update can be a mustache template', () => {
+    const input = {
+      comment: {
+        'on-update': '{{ onUpdate }}',
+        header: 'hi',
+        footer: 'bye',
+        snippets: [snippet2Object],
+      },
+    };
+
+    const templateVariables = { onUpdate: 'nothing' };
+
+    const output = new Map([
+      ['onCreate', 'create'],
+      ['onUpdate', 'nothing'],
+      ['header', 'hi'],
+      ['footer', 'bye'],
+      ['snippets', [snippet2Map]],
+    ]);
+
+    expect(config.validateCommentConfig(input, templateVariables)).toEqual(output);
+  });
+
+  test('on-update must be one of known values after rendering the mustache template', () => {
+    const input = {
+      comment: {
+        'on-update': '{{ onUpdate }}',
+      },
+    };
+
+    const templateVariables = { onUpdate: 'cat' };
+
+    expect(() => config.validateCommentConfig(input, templateVariables)).toThrow(/found unexpected value 'cat' under key '\.comment\.on-update' \(should be one of: recreate, edit, nothing\)/);
   });
 
   test('glob-options is optional', () => {
@@ -202,6 +328,7 @@ describe('validateCommentConfig', () => {
     };
 
     const output = new Map([
+      ['onCreate', 'create'],
       ['onUpdate', 'recreate'],
       ['header', undefined],
       ['footer', undefined],
@@ -298,6 +425,7 @@ describe('validateCommentConfig', () => {
     const expected = new Map([
       ['footer', undefined],
       ['header', undefined],
+      ['onCreate', 'create'],
       ['onUpdate', 'recreate'],
       ['snippets', snippets],
     ]);
