@@ -300,7 +300,6 @@ async function getChangedFiles(client, prNumber) {
 }
 
 async function getFileContent(client, repoPath) {
-  
   let remoteDefn = {
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
@@ -313,17 +312,18 @@ async function getFileContent(client, repoPath) {
     const match = repoPath.match(regex);
 
     if (match) {
+      // eslint-disable-next-line no-unused-vars
       const [_, org, repo, ref, path] = match;
       remoteDefn = {
         owner: org,
         repo,
         path,
-        ref
-      }
+        ref,
+      };
     }
   }
 
-  core.debug(JSON.stringify({ remoteDefn }))
+  core.debug(JSON.stringify({ remoteDefn }));
 
   const response = await client.repos.getContent(remoteDefn);
 
