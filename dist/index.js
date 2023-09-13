@@ -323,7 +323,7 @@ async function getFileContent(client, repoPath) {
     }
   }
 
-  core.debug(JSON.stringify({ remoteDefn }));
+  core.info(`Fetching file: ${JSON.stringify({ remoteDefn })}`);
 
   const response = await client.repos.getContent(remoteDefn);
 
