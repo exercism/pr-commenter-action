@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.5.0 (2023-09-14)
+
+- Add support for using a remote config-file (stored in another GitHub repository).
+
 ## 1.4.0 (2022-12-16)
 
 - Add a new config option `.comment.on-create`.

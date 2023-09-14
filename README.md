@@ -17,7 +17,7 @@ jobs:
   pr-comment:
     runs-on: ubuntu-latest
     steps:
-      - uses: exercism/pr-commenter-action@v1.4.0
+      - uses: exercism/pr-commenter-action@v1.5.0
         with:
           github-token: "${{ github.token }}"
           config-file: ".github/pr-commenter.yml"
@@ -152,7 +152,7 @@ jobs:
         run: |
           echo ::set-output name=today::"$(date +%d-%m-%Y)"
 
-      - uses: exercism/pr-commenter-action@v1.4.0
+      - uses: exercism/pr-commenter-action@v1.5.0
         with:
           template-variables: |
             {
@@ -195,7 +195,7 @@ jobs:
           echo "$IMPORTANT_FILE_CONTENT" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      - uses: exercism/pr-commenter-action@v1.4.0
+      - uses: exercism/pr-commenter-action@v1.5.0
         with:
           template-variables: |
             {
