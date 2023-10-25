@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Bump Node version to 20.
+
 ## 1.5.0 (2023-09-14)
 
 - Add support for using a remote config-file (stored in another GitHub repository).
