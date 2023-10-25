@@ -287,7 +287,7 @@ async function getChangedFiles(client, prNumber) {
     pull_number: prNumber,
   });
 
-  const listFilesResponse = await client.rest.paginate(listFilesOptions);
+  const listFilesResponse = await client.paginate(listFilesOptions);
   const changedFiles = listFilesResponse.map((f) => f.filename);
 
   core.debug('found changed files:');
