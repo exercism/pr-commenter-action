@@ -17,7 +17,7 @@ jobs:
   pr-comment:
     runs-on: ubuntu-latest
     steps:
-      - uses: exercism/pr-commenter-action@v1.4.0
+      - uses: exercism/pr-commenter-action@v1.5.0
         with:
           github-token: "${{ github.token }}"
           config-file: ".github/pr-commenter.yml"
@@ -64,6 +64,8 @@ Auth token used to manage issues or pull requests.
 **Required**: true
 
 **Default**: `.github/pr-commenter.yml`
+
+To reference a config file in another repo use the format: `<owner>/<repo>@<ref>:<path>`, for example `someuser/my-repo@v1:.github/pr-commenter.yml`. NOTE: make sure that "my-repo" is public and has "Workflow permissions" allowing files to be read.
 
 ### Configuration file
 
@@ -150,7 +152,7 @@ jobs:
         run: |
           echo ::set-output name=today::"$(date +%d-%m-%Y)"
 
-      - uses: exercism/pr-commenter-action@v1.4.0
+      - uses: exercism/pr-commenter-action@v1.5.0
         with:
           template-variables: |
             {
@@ -193,7 +195,7 @@ jobs:
           echo "$IMPORTANT_FILE_CONTENT" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      - uses: exercism/pr-commenter-action@v1.4.0
+      - uses: exercism/pr-commenter-action@v1.5.0
         with:
           template-variables: |
             {
