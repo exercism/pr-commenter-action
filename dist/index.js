@@ -299,12 +299,32 @@ async function getChangedFiles(client, prNumber) {
 }
 
 async function getFileContent(client, repoPath) {
-  const response = await client.rest.repos.getContent({
+  let remoteDefn = {
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
     path: repoPath,
     ref: github.context.sha,
-  });
+  };
+
+  if (repoPath.includes('@')) {
+    const regex = /^(.+?)\/(.+?)@(.+?):(.+?)$/;
+    const match = repoPath.match(regex);
+
+    if (match) {
+      // eslint-disable-next-line no-unused-vars
+      const [_, org, repo, ref, path] = match;
+      remoteDefn = {
+        owner: org,
+        repo,
+        path,
+        ref,
+      };
+    }
+  }
+
+  core.info(`Fetching file: ${JSON.stringify({ remoteDefn })}`);
+
+  const response = await client.rest.repos.getContent(remoteDefn);
 
   return Buffer.from(response.data.content, response.data.encoding).toString();
 }
