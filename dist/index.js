@@ -255,7 +255,7 @@ const github = __nccwpck_require__(5438);
 const core = __nccwpck_require__(2186);
 
 async function deleteComment(client, comment) {
-  return client.issues.deleteComment({
+  return client.rest.issues.deleteComment({
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
     comment_id: comment.id,
@@ -263,7 +263,7 @@ async function deleteComment(client, comment) {
 }
 
 async function editComment(client, comment, newBody) {
-  return client.issues.updateComment({
+  return client.rest.issues.updateComment({
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
     comment_id: comment.id,
@@ -272,7 +272,7 @@ async function editComment(client, comment, newBody) {
 }
 
 async function createComment(client, prNumber, body) {
-  return client.issues.createComment({
+  return client.rest.issues.createComment({
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
     issue_number: prNumber,
@@ -281,13 +281,13 @@ async function createComment(client, prNumber, body) {
 }
 
 async function getChangedFiles(client, prNumber) {
-  const listFilesOptions = client.pulls.listFiles.endpoint.merge({
+  const listFilesOptions = client.rest.pulls.listFiles.endpoint.merge({
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
     pull_number: prNumber,
   });
 
-  const listFilesResponse = await client.paginate(listFilesOptions);
+  const listFilesResponse = await client.rest.paginate(listFilesOptions);
   const changedFiles = listFilesResponse.map((f) => f.filename);
 
   core.debug('found changed files:');
@@ -299,7 +299,7 @@ async function getChangedFiles(client, prNumber) {
 }
 
 async function getFileContent(client, repoPath) {
-  const response = await client.repos.getContent({
+  const response = await client.rest.repos.getContent({
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
     path: repoPath,
@@ -310,7 +310,7 @@ async function getFileContent(client, repoPath) {
 }
 
 async function getComments(client, prNumber) {
-  const { data: comments } = await client.issues.listComments({
+  const { data: comments } = await client.rest.issues.listComments({
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
     issue_number: prNumber,
