@@ -1,9 +1,9 @@
-const core = require('@actions/core');
-const github = require('@actions/github');
-const localGithub = require('../lib/github');
-const comment = require('../lib/comment');
+import * as core from '@actions/core';
+import * as github from '@actions/github';
+import * as localGithub from '../lib/github';
+import * as comment from '../lib/comment';
 
-const { run } = require('../lib/run');
+import { run } from '../lib/run';
 
 const fakePRNumber = 432;
 
@@ -16,8 +16,12 @@ jest.mock('@actions/github', () => ({
 
 jest.mock('../lib/github');
 
-describe('run', () => {
-  test('fully-mocked recreating a comment happy path', async () => {
+describe('run', (): void => {
+  beforeEach(() => {
+    github.context.payload = { pull_request: { number: fakePRNumber } }; // Ensure the mock context is correct
+  });
+
+  test('fully-mocked recreating a comment happy path', async (): Promise<void> => {
     const fakeToken = 'github-token-123456';
     const fakeConfigPath = 'foo/config-file.yml';
     const fakeConfig = 'comment:\n'
@@ -40,7 +44,7 @@ describe('run', () => {
       + '      files:\n'
       + '        - static/**.css\n';
 
-    core.getInput.mockImplementation((argument) => {
+    (core.getInput as jest.Mock).mockImplementation((argument: string): string | null => {
       if (argument === 'github-token') {
         return fakeToken;
       }
@@ -74,14 +78,14 @@ describe('run', () => {
     + 'Bye!\n\n'}${
       comment.commentMetadata(['snippet1', 'snippet3'])}`;
 
-    localGithub.getChangedFiles.mockResolvedValue(['static/foo.html', 'README.md', 'static/foo.css']);
-    localGithub.getFileContent.mockResolvedValue(fakeConfig);
-    localGithub.getComments.mockResolvedValue(existingPRComments);
+    (localGithub.getChangedFiles as jest.Mock).mockResolvedValue(['static/foo.html', 'README.md', 'static/foo.css']);
+    (localGithub.getFileContent as jest.Mock).mockResolvedValue(fakeConfig);
+    (localGithub.getComments as jest.Mock).mockResolvedValue(existingPRComments);
 
     await run();
 
     expect(github.getOctokit).toHaveBeenCalledTimes(1);
-    expect(github.getOctokit.mock.calls[0][0]).toEqual(fakeToken);
+    expect((github.getOctokit as jest.Mock).mock.calls[0][0]).toEqual(fakeToken);
 
     expect(localGithub.getChangedFiles).toHaveBeenCalledTimes(1);
     expect(localGithub.getChangedFiles).toHaveBeenCalledWith({ name: 'fake-client' }, fakePRNumber);

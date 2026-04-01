@@ -1,16 +1,26 @@
-const github = require('@actions/github');
-const core = require('@actions/core');
+import * as github from '@actions/github';
+import * as core from '@actions/core';
+import { Comment } from './comment';
 
-async function deleteComment(client, comment) {
-  return client.rest.issues.deleteComment({
+export type OctokitClient = ReturnType<typeof github.getOctokit>;
+
+type RemoteDefinition = {
+  owner: string;
+  repo: string;
+  path: string;
+  ref: string;
+}
+
+async function deleteComment(client: OctokitClient, comment: Comment): Promise<void> {
+  await client.rest.issues.deleteComment({
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
     comment_id: comment.id,
   });
 }
 
-async function editComment(client, comment, newBody) {
-  return client.rest.issues.updateComment({
+async function editComment(client: OctokitClient, comment: Comment, newBody: string): Promise<void> {
+  await client.rest.issues.updateComment({
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
     comment_id: comment.id,
@@ -18,8 +28,8 @@ async function editComment(client, comment, newBody) {
   });
 }
 
-async function createComment(client, prNumber, body) {
-  return client.rest.issues.createComment({
+async function createComment(client: OctokitClient, prNumber: number, body: string): Promise<void> {
+  await client.rest.issues.createComment({
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
     issue_number: prNumber,
@@ -27,14 +37,14 @@ async function createComment(client, prNumber, body) {
   });
 }
 
-async function getChangedFiles(client, prNumber) {
+async function getChangedFiles(client: OctokitClient, prNumber: number): Promise<string[]> {
   const listFilesOptions = client.rest.pulls.listFiles.endpoint.merge({
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
     pull_number: prNumber,
   });
 
-  const listFilesResponse = await client.paginate(listFilesOptions);
+  const listFilesResponse = await client.paginate<{filename: string}>(listFilesOptions);
   const changedFiles = listFilesResponse.map((f) => f.filename);
 
   core.debug('found changed files:');
@@ -45,8 +55,8 @@ async function getChangedFiles(client, prNumber) {
   return changedFiles;
 }
 
-async function getFileContent(client, repoPath) {
-  let remoteDefn = {
+async function getFileContent(client: OctokitClient, repoPath: string): Promise<string> {
+  let remoteDefn: RemoteDefinition = {
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
     path: repoPath,
@@ -59,7 +69,7 @@ async function getFileContent(client, repoPath) {
 
     if (match) {
       // eslint-disable-next-line no-unused-vars
-      const [_, org, repo, ref, path] = match;
+      const [, org, repo, ref, path] = match;
       remoteDefn = {
         owner: org,
         repo,
@@ -73,10 +83,14 @@ async function getFileContent(client, repoPath) {
 
   const response = await client.rest.repos.getContent(remoteDefn);
 
-  return Buffer.from(response.data.content, response.data.encoding).toString();
+  if ('content' in response.data && 'encoding' in response.data) {
+    return Buffer.from(response.data.content, response.data.encoding as BufferEncoding).toString();
+  }
+
+  throw new Error('Unexpected response format from getContent');
 }
 
-async function getComments(client, prNumber) {
+async function getComments(client: OctokitClient, prNumber: number): Promise<Comment[]> {
   const { data: comments } = await client.rest.issues.listComments({
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
@@ -86,7 +100,7 @@ async function getComments(client, prNumber) {
   return comments;
 }
 
-module.exports = {
+export {
   deleteComment,
   editComment,
   createComment,

@@ -1,22 +1,23 @@
-const comment = require('../lib/comment');
+import * as comment from '../lib/comment';
+import {CommentObject} from "../lib/comment";
 
 describe('comment', () => {
   describe('assembleCommentBody', () => {
     test('header, footer, and many snippets', () => {
-      const commentConfig = new Map([
+      const commentConfig = new Map<string, unknown>([
         ['header', 'hello'],
         ['footer', 'bye'],
         ['snippets', [
-          new Map([
+          new Map<string, unknown>([
             ['id', 'snippet1'],
             ['body', 'A list:\n- one\n- two\n- three'],
           ]),
-          new Map([
+          new Map<string, unknown>([
             ['id', 'snippet2'],
             ['body', 'Do not forget to be awesome!'],
           ]),
         ]],
-      ]);
+      ]) as CommentObject;
 
       expect(comment.assembleCommentBody(['snippet1'], commentConfig)).toEqual(
         'hello\n\n'
@@ -35,20 +36,20 @@ describe('comment', () => {
     });
 
     test('no header', () => {
-      const commentConfig = new Map([
+      const commentConfig = new Map<string, unknown>([
         ['header', undefined],
         ['footer', 'bye'],
         ['snippets', [
-          new Map([
+          new Map<string, unknown>([
             ['id', 'snippet1'],
             ['body', 'A list:\n- one\n- two\n- three'],
           ]),
-          new Map([
+          new Map<string, unknown>([
             ['id', 'snippet2'],
             ['body', 'Do not forget to be awesome!'],
           ]),
         ]],
-      ]);
+      ]) as CommentObject;
 
       expect(comment.assembleCommentBody(['snippet1', 'snippet2'], commentConfig)).toEqual(
         'A list:\n- one\n- two\n- three\n\n'
@@ -59,20 +60,20 @@ describe('comment', () => {
     });
 
     test('no footer', () => {
-      const commentConfig = new Map([
+      const commentConfig = new Map<string, unknown>([
         ['header', 'hello'],
         ['footer', undefined],
         ['snippets', [
-          new Map([
+          new Map<string, unknown>([
             ['id', 'snippet1'],
             ['body', 'A list:\n- one\n- two\n- three'],
           ]),
-          new Map([
+          new Map<string, unknown>([
             ['id', 'snippet2'],
             ['body', 'Do not forget to be awesome!'],
           ]),
         ]],
-      ]);
+      ]) as CommentObject;
 
       expect(comment.assembleCommentBody(['snippet1', 'snippet2'], commentConfig)).toEqual(
         'hello\n\n'
@@ -83,20 +84,20 @@ describe('comment', () => {
     });
 
     test('no header and no footer', () => {
-      const commentConfig = new Map([
+      const commentConfig = new Map<string, unknown>([
         ['header', undefined],
         ['footer', undefined],
         ['snippets', [
-          new Map([
+          new Map<string, unknown>([
             ['id', 'snippet1'],
             ['body', 'A list:\n- one\n- two\n- three'],
           ]),
-          new Map([
+          new Map<string, unknown>([
             ['id', 'snippet2'],
             ['body', 'Do not forget to be awesome!'],
           ]),
         ]],
-      ]);
+      ]) as CommentObject;
 
       expect(comment.assembleCommentBody(['snippet1', 'snippet2'], commentConfig)).toEqual(
         'A list:\n- one\n- two\n- three\n\n'
@@ -106,16 +107,16 @@ describe('comment', () => {
     });
 
     test('supports Mustache templates', () => {
-      const commentConfig = new Map([
+      const commentConfig = new Map<string, unknown>([
         ['header', 'hello {{user.firstName}}'],
         ['footer', 'bye {{user.firstName}}'],
         ['snippets', [
-          new Map([
+          new Map<string, unknown>([
             ['id', 'snippet1'],
             ['body', 'A list:\n- one\n- two\n{{#shouldIncludeThirdItem}}- three\n{{/shouldIncludeThirdItem}}'],
           ]),
         ]],
-      ]);
+      ]) as CommentObject;
 
       const templateVariables = {
         user: {
@@ -143,7 +144,7 @@ describe('comment', () => {
 
     test('finds an empty array in the middle of a comment', () => {
       const commentBody = 'hello\nthere\n<!-- pr-commenter-metadata:  -->\nblabla';
-      const expectedResult = [];
+      const expectedResult: unknown = [];
 
       expect(comment.extractCommentMetadata(commentBody)).toEqual(expectedResult);
     });
@@ -186,42 +187,54 @@ describe('comment', () => {
 
   describe('comment create/delete/edit logic', () => {
     test('no previous comment, no snippets detected', () => {
-      const previousComment = undefined;
-      const snippetIds = [];
+      const previousComment: unknown = undefined;
+      const snippetIds: string[] = [];
 
-      let commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'recreate']]);
+      let commentConfig = new Map<string, unknown>([['onCreate', 'create'], ['onUpdate', 'recreate']]);
 
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
 
-      commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'edit']]);
+      commentConfig = new Map<string, unknown>([['onCreate', 'create'], ['onUpdate', 'edit']]);
 
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
 
-      commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'nothing']]);
+      commentConfig = new Map<string, unknown>([['onCreate', 'create'], ['onUpdate', 'nothing']]);
 
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
 
-      commentConfig = new Map([['onCreate', 'nothing'], ['onUpdate', 'nothing']]);
+      commentConfig = new Map<string, unknown>([['onCreate', 'nothing'], ['onUpdate', 'nothing']]);
 
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
     });
@@ -230,39 +243,51 @@ describe('comment', () => {
       const previousComment = undefined;
       const snippetIds = ['snippet1', 'snippet2'];
 
-      let commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'recreate']]);
+      let commentConfig = new Map<string, unknown>([['onCreate', 'create'], ['onUpdate', 'recreate']]);
 
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(true);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
 
-      commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'edit']]);
+      commentConfig = new Map<string, unknown>([['onCreate', 'create'], ['onUpdate', 'edit']]);
 
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(true);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
 
-      commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'nothing']]);
+      commentConfig = new Map<string, unknown>([['onCreate', 'create'], ['onUpdate', 'nothing']]);
 
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(true);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
 
-      commentConfig = new Map([['onCreate', 'nothing'], ['onUpdate', 'nothing']]);
+      commentConfig = new Map<string, unknown>([['onCreate', 'nothing'], ['onUpdate', 'nothing']]);
 
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
     });
@@ -271,39 +296,51 @@ describe('comment', () => {
       const previousComment = { body: comment.commentMetadata(['snippet1', 'snippet2']) };
       const snippetIds = ['snippet1', 'snippet2'];
 
-      let commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'recreate']]);
+      let commentConfig = new Map<string, unknown>([['onCreate', 'create'], ['onUpdate', 'recreate']]);
 
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
 
-      commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'edit']]);
+      commentConfig = new Map<string, unknown>([['onCreate', 'create'], ['onUpdate', 'edit']]);
 
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
 
-      commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'nothing']]);
+      commentConfig = new Map<string, unknown>([['onCreate', 'create'], ['onUpdate', 'nothing']]);
 
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
 
-      commentConfig = new Map([['onCreate', 'nothing'], ['onUpdate', 'recreate']]);
+      commentConfig = new Map<string, unknown>([['onCreate', 'nothing'], ['onUpdate', 'recreate']]);
 
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
     });
@@ -312,80 +349,104 @@ describe('comment', () => {
       const previousComment = { body: comment.commentMetadata(['snippet2']) };
       const snippetIds = ['snippet1', 'snippet2'];
 
-      let commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'recreate']]);
+      let commentConfig = new Map<string, unknown>([['onCreate', 'create'], ['onUpdate', 'recreate']]);
 
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(true);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(true);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
 
-      commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'edit']]);
+      commentConfig = new Map<string, unknown>([['onCreate', 'create'], ['onUpdate', 'edit']]);
 
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(true);
 
-      commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'nothing']]);
+      commentConfig = new Map<string, unknown>([['onCreate', 'create'], ['onUpdate', 'nothing']]);
 
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
 
-      commentConfig = new Map([['onCreate', 'nothing'], ['onUpdate', 'recreate']]);
+      commentConfig = new Map<string, unknown>([['onCreate', 'nothing'], ['onUpdate', 'recreate']]);
 
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(true);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(true);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
     });
 
     test('a previous comment, new comment would have no snippets', () => {
       const previousComment = { body: comment.commentMetadata(['snippet2']) };
-      const snippetIds = [];
+      const snippetIds: string[] = [];
 
-      let commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'recreate']]);
+      let commentConfig = new Map<string, unknown>([['onCreate', 'create'], ['onUpdate', 'recreate']]);
 
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(true);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
 
-      commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'edit']]);
+      commentConfig = new Map<string, unknown>([['onCreate', 'create'], ['onUpdate', 'edit']]);
 
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(true);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
 
-      commentConfig = new Map([['onCreate', 'create'], ['onUpdate', 'nothing']]);
+      commentConfig = new Map<string, unknown>([['onCreate', 'create'], ['onUpdate', 'nothing']]);
 
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
 
-      commentConfig = new Map([['onCreate', 'nothing'], ['onUpdate', 'edit']]);
+      commentConfig = new Map<string, unknown>([['onCreate', 'nothing'], ['onUpdate', 'edit']]);
 
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldPostNewComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldDeletePreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(true);
+      // @ts-expect-error: Intentional type violation for testing
       expect(comment.shouldEditPreviousComment(previousComment, snippetIds, commentConfig))
         .toEqual(false);
     });
